@@ -7,6 +7,8 @@ from wget import download
 import os
 import signal
 
+import imagetoascii 
+
 
 user_id = '22342'
 legacy_url = "https://mobilevids.org/legacy"
@@ -40,9 +42,10 @@ def signal_handler(sig, frame): # keyboard interrupt handler
 signal.signal(signal.SIGINT, signal_handler)
 
 class Downloader(object): 
-    def __init__(self, debug=False) -> None:
+    def __init__(self, debug=False, ascii=False) -> None:
         super().__init__()
         self.debug = debug
+        self.ascii = ascii
         self.user_token = self.login()
         self._index = 1
         self.query = ''
@@ -97,6 +100,10 @@ class Downloader(object):
         print("Search results: ")
         for i in self.response['items']:
             print('{}) Name: {}  ID: {}  Type: {}'.format(str(self._index), i['title'], str(i['id']), 'Movie' if i['cat_id'] == 1 else 'TV'))
+            
+            if self.ascii:
+                imagetoascii.convert_to_ascii(i['poster_thumbnail'])
+                
             self._index = self._index + 1
         show_id = input('Enter ID: ').lower()
         for i in self.response['items']:
@@ -129,19 +136,20 @@ class Downloader(object):
         
 def options_parser():  # argument parser
     parser = argparse.ArgumentParser(description='Mobilevids Downloader script', prog='mobilevids-dl.py')
+    parser.add_argument('-a', '--ascii', help='show ascii art', action='store_true')
     parser.add_argument('-d', '--debug', help='debugs the program- duh', action='store_true')
     parser.add_argument('-m', '--movie', help='downloads the ID of a movie', default=False)
     parser.add_argument('-s', '--show', help='downloads the ID of a show', default=False)
     args = parser.parse_args()
 
-    downloader = Downloader(args.debug)
+    downloader = Downloader(args.debug, args.ascii)
    
     if args.movie:
         downloader.get_movie_by_id(args.movie)
     elif args.show:
         downloader.get_show_by_id(args.show)
     else:
-        print('[!] Movie/Show not specified - running search')
+        print('[+] Movie/Show not specified - running search')
         downloader.search()
 
 
