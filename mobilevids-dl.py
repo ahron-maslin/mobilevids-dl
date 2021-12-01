@@ -71,7 +71,7 @@ class Downloader(object):
             print('\n')
 
 
-    def quality(self, info: list, debug=False):
+    def quality(self, info: list, debug=False):  # quality sorter
         if 'src_vip_hd_1080p' in info and info['src_vip_hd_1080p'] != '':
             return info['src_vip_hd_1080p']
         elif 'src_vip_hd' in info and info['src_vip_hd'] != '':
@@ -90,7 +90,7 @@ class Downloader(object):
         return response
           
 
-    def search(self):  
+    def search(self):  # search function
         self.query = input('Search for something: ').lower()
         self.response = self._get('/webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'.format(user_id, self.user_token, self.query), self.debug)
 
@@ -126,7 +126,7 @@ class Downloader(object):
         season_info = self._get('/webapi/videos/get_season.php?show_id={}&user_id={}&token={}'.format(id, user_id, self.user_token), self.debug)
         print('[*] Showing info for {}'.format(season_info['show']['title']))
         which_season = input("Which season would you like to download? (out of {}) ".format(list(season_info['season_list'].keys())[0])) 
-        i = 1
+        i = 0
         while i < len(season_info['season_list'][str(which_season)]): 
             info = self._get("/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}"
             .format(user_id, self.user_token, id, which_season, str(season_info['season_list'][str(which_season)][i][1])), self.debug)            
