@@ -1,4 +1,3 @@
-from PIL import Image
 import urllib.request
 import ascii_magic
 
