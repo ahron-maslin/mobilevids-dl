@@ -138,12 +138,13 @@ def options_parser():  # argument parser
     parser = argparse.ArgumentParser(description='Mobilevids Downloader script', prog='mobilevids-dl.py')
     parser.add_argument('-a', '--ascii', help='show ascii art', action='store_true')
     parser.add_argument('-d', '--debug', help='debugs the program- duh', action='store_true')
+    parser.add_argument('-i', '--info', help='show info about movie/show', action='store_true')
     parser.add_argument('-m', '--movie', help='downloads the ID of a movie', default=False)
     parser.add_argument('-s', '--show', help='downloads the ID of a show', default=False)
     args = parser.parse_args()
 
     downloader = Downloader(args.debug, args.ascii)
-   
+
     if args.movie:
         downloader.get_movie_by_id(args.movie)
     elif args.show:
@@ -154,7 +155,7 @@ def options_parser():  # argument parser
 
 
 if __name__ == '__main__':  # main function
-    with open('password', 'r') as p:
+    with open(os.path.dirname(__file__) +'/password', 'r') as p:
         PASSWORD = p.read()
 
     if not os.path.exists('downloads'):
