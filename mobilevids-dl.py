@@ -158,7 +158,7 @@ if __name__ == '__main__':  # main function
     with open(os.path.dirname(__file__) +'/password', 'r') as p:
         PASSWORD = p.read()
 
-    if not os.path.exists('downloads'):
-        os.mkdir('downloads')
+    if not os.path.exists(os.path.dirname(__file__) +'/downloads'):
+        os.mkdir(os.path.dirname(__file__) +'/downloads')
     options_parser()   
 
