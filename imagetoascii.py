@@ -1,4 +1,3 @@
-import urllib.request
 import ascii_magic
 
 
