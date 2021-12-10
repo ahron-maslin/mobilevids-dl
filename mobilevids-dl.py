@@ -6,17 +6,17 @@ import requests
 from wget import download
 import os
 import signal
-
 import imagetoascii
 
 
-user_id = '22342'
-legacy_url = "https://mobilevids.org/legacy"
-base_url = 'https://mobilevids.org'
-cookies = {'PHPSESSID': '4lr9s6m1qqu5k02hj8sdag425j'}
+USER_ID = '22342'
+LEGACY_URL = "https://mobilevids.org/legacy"
+BASE_URL = 'https://mobilevids.org'
+COOKIES = {'PHPSESSID': '4lr9s6m1qqu5k02hj8sdag425j'}
 PASSWORD = ''
+DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
 
-headers = {'POST': '/webapi/user/login.php HTTP/1.1',
+HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Host': 'mobilevids.org',
            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
            'Accept': '*/*',
@@ -58,7 +58,7 @@ class Downloader(object):
         payload = 'data=%7B%22Name%22%3A%22Dumpbot%22%2C%22Password%22%3A%22' + PASSWORD + '%22%7D'
         try:
             login_info = requests.post(
-                base_url + "/webapi/user/login.php", data=payload, headers=headers, cookies=cookies)
+                BASE_URL + "/webapi/user/login.php", data=payload, headers=HEADERS, cookies=COOKIES)
             login_info_res = json.loads(login_info.text)
         except JSONDecodeError:
             raise JSONDecodeError('cannot decode JSON - bad response!')
@@ -67,11 +67,11 @@ class Downloader(object):
 
     def wget_wrapper(self, video: str, folder: str):  # wrapper for the wget module
         print('\nDownloading {}'.format(video))
-        if not os.path.exists('downloads/' + folder):
-            os.mkdir('downloads/' + folder)
-        path = 'downloads/' + folder + '/' + \
+        if not os.path.exists(DOWNLOAD_DIRECTORY + folder):
+            os.mkdir(DOWNLOAD_DIRECTORY + folder)
+        path = DOWNLOAD_DIRECTORY + folder + '/' + \
             os.path.basename(video).split('?', 1)[0]
-        print(path)
+        print('to {}'.format(path))
         if not os.path.isfile(path):
             download(video, path)
             print('\n')
@@ -89,7 +89,7 @@ class Downloader(object):
 
     # wrapper function - takes url and returns response
     def _get(self, url_params: str, debug=False) -> dict:
-        response = json.loads(requests.get(base_url + url_params).text)
+        response = json.loads(requests.get(BASE_URL + url_params).text)
         if debug:
             print("[!] Debugging mode enabled: {}".format(response))
         return response
@@ -97,7 +97,7 @@ class Downloader(object):
     def search(self):  # search function
         self.query = input('Search for something: ').lower()
         self.response = self._get('/webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'.format(
-            user_id, self.user_token, self.query), self.debug)
+            USER_ID, self.user_token, self.query), self.debug)
 
         if self.response['items'] == None:
             raise ValueError(
@@ -121,24 +121,25 @@ class Downloader(object):
 
     def get_movie_by_id(self, id: str):  # get movie by id
         info = self._get("/webapi/videos/get_video.php?id={}&user_id={}&token={}".format(
-            id, user_id, self.user_token), self.debug)
+            id, USER_ID, self.user_token), self.debug)
         print("[*] Downloading {}".format(info['title']))
-        path = 'downloads/' + \
+        path = DOWNLOAD_DIRECTORY + \
             os.path.basename(self.quality(info, self.debug)).split('?', 1)[0]
         if not os.path.isfile(path):
             download(self.quality(info, self.debug), path)
+            print('\n')
 
     def get_show_by_id(self, id: str):  # get show by id
+        i = 0
         season_info = self._get(
-            '/webapi/videos/get_season.php?show_id={}&user_id={}&token={}'.format(id, user_id, self.user_token), self.debug)
+            '/webapi/videos/get_season.php?show_id={}&user_id={}&token={}'.format(id, USER_ID, self.user_token), self.debug)
         print('[*] Showing info for {}'.format(season_info['show']['title']))
         self.tv_folder_name = season_info['show']['title']
         which_season = input("Which season would you like to download? (out of {}) ".format(
             list(season_info['season_list'].keys())[0]))
-        i = 0
         while i < len(season_info['season_list'][str(which_season)]):
             info = self._get("/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}"
-                             .format(user_id, self.user_token, id, which_season, str(season_info['season_list'][str(which_season)][i][1])), self.debug)
+                             .format(USER_ID, self.user_token, id, which_season, str(season_info['season_list'][str(which_season)][i][1])), self.debug)
             self.wget_wrapper(self.quality(info, self.debug),
                               self.tv_folder_name.replace(' ', '_'))
             i = i + 1
@@ -174,6 +175,6 @@ if __name__ == '__main__':  # main function
     with open('password', 'r') as p:
         PASSWORD = p.read()
 
-    if not os.path.exists('downloads/'):
-        os.mkdir('downloads/')
+    if not os.path.exists(DOWNLOAD_DIRECTORY):
+        os.mkdir(DOWNLOAD_DIRECTORY)
     options_parser()
