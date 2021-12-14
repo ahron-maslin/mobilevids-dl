@@ -119,9 +119,9 @@ class Downloader(object):
             elif i['id'] == int(show_id) and i['cat_id'] == 1:
                 self.get_movie_by_id(show_id)
 
-    def get_movie_by_id(self, id: str):  # get movie by id
+    def get_movie_by_id(self, ID: str):  # get movie by id
         info = self._get("/webapi/videos/get_video.php?id={}&user_id={}&token={}".format(
-            id, USER_ID, self.user_token), self.debug)
+            ID, USER_ID, self.user_token), self.debug)
         print("[*] Downloading {}".format(info['title']))
         path = DOWNLOAD_DIRECTORY + \
             os.path.basename(self.quality(info, self.debug)).split('?', 1)[0]
@@ -129,17 +129,17 @@ class Downloader(object):
             download(self.quality(info, self.debug), path)
             print('\n')
 
-    def get_show_by_id(self, id: str):  # get show by id
+    def get_show_by_id(self, ID: str):  # get show by id
         i = 0
         season_info = self._get(
-            '/webapi/videos/get_season.php?show_id={}&user_id={}&token={}'.format(id, USER_ID, self.user_token), self.debug)
+            '/webapi/videos/get_season.php?show_id={}&user_id={}&token={}'.format(ID, USER_ID, self.user_token), self.debug)
         print('[*] Showing info for {}'.format(season_info['show']['title']))
         self.tv_folder_name = season_info['show']['title']
         which_season = input("Which season would you like to download? (out of {}) ".format(
             list(season_info['season_list'].keys())[0]))
         while i < len(season_info['season_list'][str(which_season)]):
             info = self._get("/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}"
-                             .format(USER_ID, self.user_token, id, which_season, str(season_info['season_list'][str(which_season)][i][1])), self.debug)
+                             .format(USER_ID, self.user_token, ID, which_season, str(season_info['season_list'][str(which_season)][i][1])), self.debug)
             self.wget_wrapper(self.quality(info, self.debug),
                               self.tv_folder_name.replace(' ', '_'))
             i = i + 1
