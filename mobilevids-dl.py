@@ -36,6 +36,9 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
 
 
 def signal_handler(sig, frame):  # keyboard interrupt handler
+    for file in os.listdir(DOWNLOAD_DIRECTORY):
+        if file.endswith(".tmp"):
+            os.remove(os.path.join(DOWNLOAD_DIRECTORY, file))
     print('\n[!] CTRL-C pressed - exiting!')
     exit(0)
 
