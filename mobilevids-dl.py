@@ -125,7 +125,7 @@ class Downloader(object):
     def get_movie_by_id(self, ID: str):  # get movie by id
         info = self._get("/webapi/videos/get_video.php?id={}&user_id={}&token={}".format(
             ID, USER_ID, self.user_token), self.debug)
-        print("[*] Downloading {}".format(info['title']))
+        print("[*] Downloading {} ({})".format(info['title'], info['year']))
         path = DOWNLOAD_DIRECTORY + \
             os.path.basename(self.quality(info, self.debug)).split('?', 1)[0]
         if not os.path.isfile(path):
