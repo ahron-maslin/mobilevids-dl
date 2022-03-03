@@ -3,7 +3,6 @@ import json
 from json.decoder import JSONDecodeError
 import argparse
 import netrc
-from click import password_option
 import requests
 from wget import download
 import os
@@ -18,8 +17,8 @@ SEARCH_URL = 'https://mobilevids.org/webapi/videos/search.php?&p=1&user_id={}&to
 GET_VIDEO_URL = 'https://mobilevids.org/webapi/videos/get_video.php?user_id={}&token={}&id={}'
 GET_SEASON_URL = 'https://mobilevids.org/webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
 GET_SINGLE_EPISODE_URL = 'https://mobilevids.org/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
-COOKIES = {'PHPSESSID': '4lr9s6m1qqu5k02hj8sdag425j'}
-PASSWORD = ''
+# Can fill these in manually
+PASSWORD = '' 
 USERNAME = ''
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
@@ -36,11 +35,10 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Origin': 'https://mobilevids.org',
            'Connection': 'keep-alive',
            'Referer': 'https://mobilevids.org/legacy/',
-           # may need to update PHPSESSID every now and then
-           'Cookie': 'PHPSESSID=4lr9s6m1qqu5k02hj8sdag425j',
            'Sec-Fetch-Dest': 'empty',
            'Sec-Fetch-Mode': 'cors',
-           'Sec-Fetch-Site': 'same-origin'}
+           'Sec-Fetch-Site': 'same-origin'
+           }
 
 
 def signal_handler(sig, frame):  # keyboard interrupt handler
@@ -64,8 +62,8 @@ class Downloader(object):
     def login(self) -> str:  # login function
         payload = 'data=%7B%22Name%22%3A%22' + USERNAME + '%22%2C%22Password%22%3A%22' + PASSWORD + '%22%7D'
         try:
-            login_info = json.loads(requests.post(
-                LOGIN_URL, data=payload, headers=HEADERS, cookies=COOKIES).text)
+            login_info = json.loads(session.post(
+                LOGIN_URL, data=payload, headers=HEADERS).text)
             print(login_info) if self.debug else None
         except JSONDecodeError:
             raise JSONDecodeError('cannot decode JSON - bad response!')
@@ -83,7 +81,7 @@ class Downloader(object):
             download(video, save_path)
             print('\n')
 
-    def quality(self, info: list, debug=False):  # quality sorter
+    def quality(self, info: list):  # quality sorter
 
         for quality in QUALITIES:
             if quality in info and info[quality] != '':
@@ -95,7 +93,7 @@ class Downloader(object):
         Returns JSON response from URL
 
         """
-        response = json.loads(requests.get(url).text)
+        response = json.loads(session.get(url).text)
         print(f'[!] Debugging mode enabled: {response}') if self.debug else None
         return response
 
@@ -134,9 +132,9 @@ class Downloader(object):
         print(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
         save_path = DOWNLOAD_DIRECTORY + \
             os.path.basename(self.quality(
-                movie_json, self.debug)).split('?', 1)[0]
+                movie_json)).split('?', 1)[0]
         if not os.path.isfile(save_path):
-            download(self.quality(movie_json, self.debug), save_path)
+            download(self.quality(movie_json), save_path)
             print('\n')
 
     def get_show_by_id(self, show_id: str):
@@ -153,7 +151,7 @@ class Downloader(object):
         while index < len(season_json['season_list'][str(season_chosen)]):
             episode = str(season_json["season_list"][str(season_chosen)][index][1])
             episode_info = self.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season_chosen, episode))
-            self.wget_wrapper(self.quality(episode_info, self.debug), tv_folder_name)
+            self.wget_wrapper(self.quality(episode_info), tv_folder_name)
             index = index + 1
 
        
@@ -185,6 +183,7 @@ def options_parser():
 
 
 if __name__ == '__main__':  # main function
+    session = requests.Session()
     try:
         creds = netrc.netrc('.netrc').authenticators('mobilevids')
         USERNAME, PASSWORD = creds[0], creds[2]
