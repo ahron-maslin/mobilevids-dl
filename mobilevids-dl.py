@@ -2,7 +2,8 @@
 import json
 from json.decoder import JSONDecodeError
 import argparse
-from typing_extensions import Self
+import netrc
+from click import password_option
 import requests
 from wget import download
 import os
@@ -10,16 +11,16 @@ import signal
 import imagetoascii
 
 
-USER_ID = '22342'
 LEGACY_URL = 'https://mobilevids.org/legacy'
 BASE_URL = 'https://mobilevids.org'
-LOGIN_URL = BASE_URL + '/webapi/user/login.php'
-SEARCH_URL = BASE_URL + '/webapi/videos/search.php?&p=1&user_id={USER_ID}&token={self.user_token}&query={search_query}'
-GET_VIDEO_URL = ''
-GET_SEASON_URL = ''
-GET_SINGLE_EPISODE_URL = ''
+LOGIN_URL = 'https://mobilevids.org/webapi/user/login.php'
+SEARCH_URL = 'https://mobilevids.org/webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'
+GET_VIDEO_URL = 'https://mobilevids.org/webapi/videos/get_video.php?user_id={}&token={}&id={}'
+GET_SEASON_URL = 'https://mobilevids.org/webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
+GET_SINGLE_EPISODE_URL = 'https://mobilevids.org/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
 COOKIES = {'PHPSESSID': '4lr9s6m1qqu5k02hj8sdag425j'}
 PASSWORD = ''
+USERNAME = ''
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
 
@@ -58,10 +59,10 @@ class Downloader(object):
         super().__init__()
         self.debug = debug
         self.ascii = ascii
-        self.user_token = self.login()
+        self.user_token, self.user_id = self.login()
 
     def login(self) -> str:  # login function
-        payload = 'data=%7B%22Name%22%3A%22Dumpbot%22%2C%22Password%22%3A%22' + PASSWORD + '%22%7D'
+        payload = 'data=%7B%22Name%22%3A%22' + USERNAME + '%22%2C%22Password%22%3A%22' + PASSWORD + '%22%7D'
         try:
             login_info = json.loads(requests.post(
                 LOGIN_URL, data=payload, headers=HEADERS, cookies=COOKIES).text)
@@ -69,7 +70,7 @@ class Downloader(object):
         except JSONDecodeError:
             raise JSONDecodeError('cannot decode JSON - bad response!')
         print('[*] Successfully logged in!')
-        return login_info['auth_token']
+        return login_info['auth_token'], login_info['id']
 
     def wget_wrapper(self, video: str, folder: str):  # wrapper for the wget module
         print(f'\nDownloading {video}')
@@ -89,14 +90,13 @@ class Downloader(object):
                 return info[quality]
         return 'No URL found'
 
-    def get_json(self, url_params: str, debug=False) -> dict:
+    def get_json(self, url: str) -> dict:
         """
         Returns JSON response from URL
 
         """
-        response = json.loads(requests.get(BASE_URL + url_params).text)
-        if debug:
-            print(f'[!] Debugging mode enabled: {response}')
+        response = json.loads(requests.get(url).text)
+        print(f'[!] Debugging mode enabled: {response}') if self.debug else None
         return response
 
     def search(self):
@@ -104,7 +104,7 @@ class Downloader(object):
         Search for media
         """
         search_query = input('Search for something: ').lower()
-        response = self.get_json(SEARCH_URL.format(USER_ID, self.user_token, search_query), self.debug)
+        response = self.get_json(SEARCH_URL.format(self.user_id, self.user_token, search_query))
 
         if response['items'] == None:
             raise ValueError(
@@ -115,11 +115,10 @@ class Downloader(object):
         for i in response['items']:
             print(
                 f'{str(index)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
-
             if self.ascii:
                 imagetoascii.convert_to_ascii(i['poster_thumbnail'])
-
             index = index + 1
+
         show_id = input('Enter ID: ').lower()
         for i in response['items']:
             if i['id'] == int(show_id) and i['cat_id'] > 1:
@@ -131,8 +130,7 @@ class Downloader(object):
         """
         Takes a movie id and downloads it to the specified directory
         """  
-        movie_json = self.get_json(
-            f'/webapi/videos/get_video.php?id={movie_id}&user_id={USER_ID}&token={self.user_token}', self.debug)
+        movie_json = self.get_json(GET_VIDEO_URL.format(self.user_id, self.user_token, movie_id))
         print(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
         save_path = DOWNLOAD_DIRECTORY + \
             os.path.basename(self.quality(
@@ -146,16 +144,15 @@ class Downloader(object):
         Takes a show id and downloads the chosen season to the specified directory
         """
         index = 0
-        season_json = self.get_json(
-            f'/webapi/videos/get_season.php?show_id={show_id}&user_id={USER_ID}&token={self.user_token}', self.debug)
+        season_json = self.get_json(GET_SEASON_URL.format(self.user_id, self.user_token, show_id))
         print(f'[*] Showing info for {season_json["show"]["title"]}')
         tv_folder_name = season_json['show']['title'].replace(' ', '_')
         season_chosen = input(
             f'Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
     
         while index < len(season_json['season_list'][str(season_chosen)]):
-            episode_info = self.get_json(
-                f'/webapi/videos/get_single_episode.php?user_id={USER_ID}&token={self.user_token}&show_id={show_id}&season={season_chosen}&episode={str(season_json["season_list"][str(season_chosen)][index][1])}', self.debug)
+            episode = str(season_json["season_list"][str(season_chosen)][index][1])
+            episode_info = self.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season_chosen, episode))
             self.wget_wrapper(self.quality(episode_info, self.debug), tv_folder_name)
             index = index + 1
 
@@ -188,9 +185,18 @@ def options_parser():
 
 
 if __name__ == '__main__':  # main function
-    with open('password', 'r') as p:
-        PASSWORD = p.read()
+    try:
+        creds = netrc.netrc('.netrc').authenticators('mobilevids')
+        USERNAME, PASSWORD = creds[0], creds[2]
+    except (IOError, netrc.NetrcParseError) as e:
+        raise BaseException(
+        'Did not find valid netrc file:\n' 
+        'create a .netrc file with the following format:\n'
+        '   machine mobilevids\n'
+        '   login YOUR_USERNAME\n'
+        '   password YOUR_PASSWORD\n')
 
+           
     if not os.path.exists(DOWNLOAD_DIRECTORY):
         os.mkdir(DOWNLOAD_DIRECTORY)
     options_parser()
