@@ -2,6 +2,7 @@
 import json
 from json.decoder import JSONDecodeError
 import argparse
+from typing_extensions import Self
 import requests
 from wget import download
 import os
@@ -10,8 +11,13 @@ import imagetoascii
 
 
 USER_ID = '22342'
-LEGACY_URL = "https://mobilevids.org/legacy"
+LEGACY_URL = 'https://mobilevids.org/legacy'
 BASE_URL = 'https://mobilevids.org'
+LOGIN_URL = BASE_URL + '/webapi/user/login.php'
+SEARCH_URL = BASE_URL + '/webapi/videos/search.php?&p=1&user_id={USER_ID}&token={self.user_token}&query={search_query}'
+GET_VIDEO_URL = ''
+GET_SEASON_URL = ''
+GET_SINGLE_EPISODE_URL = ''
 COOKIES = {'PHPSESSID': '4lr9s6m1qqu5k02hj8sdag425j'}
 PASSWORD = ''
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
@@ -53,98 +59,109 @@ class Downloader(object):
         self.debug = debug
         self.ascii = ascii
         self.user_token = self.login()
-        self._index = 1
-        self.query = ''
-        self.response = {}
-        self.tv_folder_name = ''
 
     def login(self) -> str:  # login function
         payload = 'data=%7B%22Name%22%3A%22Dumpbot%22%2C%22Password%22%3A%22' + PASSWORD + '%22%7D'
         try:
-            login_info = requests.post(
-                BASE_URL + "/webapi/user/login.php", data=payload, headers=HEADERS, cookies=COOKIES)
-            login_info_res = json.loads(login_info.text)
+            login_info = json.loads(requests.post(
+                LOGIN_URL, data=payload, headers=HEADERS, cookies=COOKIES).text)
+            print(login_info) if self.debug else None
         except JSONDecodeError:
             raise JSONDecodeError('cannot decode JSON - bad response!')
         print('[*] Successfully logged in!')
-        return login_info_res['auth_token']
+        return login_info['auth_token']
 
     def wget_wrapper(self, video: str, folder: str):  # wrapper for the wget module
-        print('\nDownloading {}'.format(video))
+        print(f'\nDownloading {video}')
         if not os.path.exists(DOWNLOAD_DIRECTORY + folder):
             os.mkdir(DOWNLOAD_DIRECTORY + folder)
-        path = DOWNLOAD_DIRECTORY + folder + '/' + \
+        save_path = DOWNLOAD_DIRECTORY + folder + '/' + \
             os.path.basename(video).split('?', 1)[0]
-        print('to {}'.format(path))
-        if not os.path.isfile(path):
-            download(video, path)
+        print(f'to {save_path}')
+        if not os.path.isfile(save_path):
+            download(video, save_path)
             print('\n')
 
     def quality(self, info: list, debug=False):  # quality sorter
+
         for quality in QUALITIES:
             if quality in info and info[quality] != '':
                 return info[quality]
         return 'No URL found'
 
-    # wrapper function - takes url and returns response
-    def _get(self, url_params: str, debug=False) -> dict:
+    def get_json(self, url_params: str, debug=False) -> dict:
+        """
+        Returns JSON response from URL
+
+        """
         response = json.loads(requests.get(BASE_URL + url_params).text)
         if debug:
-            print("[!] Debugging mode enabled: {}".format(response))
+            print(f'[!] Debugging mode enabled: {response}')
         return response
 
-    def search(self):  # search function
-        self.query = input('Search for something: ').lower()
-        self.response = self._get('/webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'.format(
-            USER_ID, self.user_token, self.query), self.debug)
+    def search(self):
+        """
+        Search for media
+        """
+        search_query = input('Search for something: ').lower()
+        response = self.get_json(SEARCH_URL.format(USER_ID, self.user_token, search_query), self.debug)
 
-        if self.response['items'] == None:
+        if response['items'] == None:
             raise ValueError(
-                "No results found for '{}' - exiting!".format(self.query))
+                f'No results found for "{search_query}" - exiting!')
 
         print("Search results: ")
-        for i in self.response['items']:
-            print('{}) Name: {}  ID: {}  Type: {}'.format(str(self._index),
-                  i['title'], str(i['id']), 'Movie' if i['cat_id'] == 1 else 'TV'))
+        index = 1
+        for i in response['items']:
+            print(
+                f'{str(index)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
 
             if self.ascii:
                 imagetoascii.convert_to_ascii(i['poster_thumbnail'])
 
-            self._index = self._index + 1
+            index = index + 1
         show_id = input('Enter ID: ').lower()
-        for i in self.response['items']:
+        for i in response['items']:
             if i['id'] == int(show_id) and i['cat_id'] > 1:
                 self.get_show_by_id(show_id)
             elif i['id'] == int(show_id) and i['cat_id'] == 1:
                 self.get_movie_by_id(show_id)
 
-    def get_movie_by_id(self, ID: str):  # get movie by id
-        info = self._get("/webapi/videos/get_video.php?id={}&user_id={}&token={}".format(
-            ID, USER_ID, self.user_token), self.debug)
-        print("[*] Downloading {} ({})".format(info['title'], info['year']))
-        path = DOWNLOAD_DIRECTORY + \
-            os.path.basename(self.quality(info, self.debug)).split('?', 1)[0]
-        if not os.path.isfile(path):
-            download(self.quality(info, self.debug), path)
+    def get_movie_by_id(self, movie_id: str):
+        """
+        Takes a movie id and downloads it to the specified directory
+        """  
+        movie_json = self.get_json(
+            f'/webapi/videos/get_video.php?id={movie_id}&user_id={USER_ID}&token={self.user_token}', self.debug)
+        print(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
+        save_path = DOWNLOAD_DIRECTORY + \
+            os.path.basename(self.quality(
+                movie_json, self.debug)).split('?', 1)[0]
+        if not os.path.isfile(save_path):
+            download(self.quality(movie_json, self.debug), save_path)
             print('\n')
 
-    def get_show_by_id(self, ID: str):  # get show by id
-        i = 0
-        season_info = self._get(
-            '/webapi/videos/get_season.php?show_id={}&user_id={}&token={}'.format(ID, USER_ID, self.user_token), self.debug)
-        print('[*] Showing info for {}'.format(season_info['show']['title']))
-        self.tv_folder_name = season_info['show']['title']
-        which_season = input("Which season would you like to download? (out of {}) ".format(
-            list(season_info['season_list'].keys())[0]))
-        while i < len(season_info['season_list'][str(which_season)]):
-            info = self._get("/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}"
-                             .format(USER_ID, self.user_token, ID, which_season, str(season_info['season_list'][str(which_season)][i][1])), self.debug)
-            self.wget_wrapper(self.quality(info, self.debug),
-                              self.tv_folder_name.replace(' ', '_'))
-            i = i + 1
+    def get_show_by_id(self, show_id: str):
+        """
+        Takes a show id and downloads the chosen season to the specified directory
+        """
+        index = 0
+        season_json = self.get_json(
+            f'/webapi/videos/get_season.php?show_id={show_id}&user_id={USER_ID}&token={self.user_token}', self.debug)
+        print(f'[*] Showing info for {season_json["show"]["title"]}')
+        tv_folder_name = season_json['show']['title'].replace(' ', '_')
+        season_chosen = input(
+            f'Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
+    
+        while index < len(season_json['season_list'][str(season_chosen)]):
+            episode_info = self.get_json(
+                f'/webapi/videos/get_single_episode.php?user_id={USER_ID}&token={self.user_token}&show_id={show_id}&season={season_chosen}&episode={str(season_json["season_list"][str(season_chosen)][index][1])}', self.debug)
+            self.wget_wrapper(self.quality(episode_info, self.debug), tv_folder_name)
+            index = index + 1
 
+       
 
-def options_parser():  # argument parser
+def options_parser():
     parser = argparse.ArgumentParser(
         description='Mobilevids Downloader script', prog='mobilevids-dl.py')
     parser.add_argument(
@@ -157,8 +174,6 @@ def options_parser():  # argument parser
         '-m', '--movie', help='downloads the ID of a movie', default=False)
     parser.add_argument(
         '-s', '--show', help='downloads the ID of a show', default=False)
-    parser.add_argument(
-        '-q', '--quality', help='choose quality', default=False)
     args = parser.parse_args()
 
     downloader = Downloader(args.debug, args.ascii)
