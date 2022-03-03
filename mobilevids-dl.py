@@ -15,6 +15,7 @@ BASE_URL = 'https://mobilevids.org'
 COOKIES = {'PHPSESSID': '4lr9s6m1qqu5k02hj8sdag425j'}
 PASSWORD = ''
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
+QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
 
 HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Host': 'mobilevids.org',
@@ -80,15 +81,10 @@ class Downloader(object):
             print('\n')
 
     def quality(self, info: list, debug=False):  # quality sorter
-        if 'src_vip_hd_1080p' in info and info['src_vip_hd_1080p'] != '':
-            return info['src_vip_hd_1080p']
-        elif 'src_vip_hd' in info and info['src_vip_hd'] != '':
-            return info['src_vip_hd']
-        elif 'src_vip_sd' in info and info['src_vip_sd'] != '':
-            return info['src_vip_sd']
-        elif 'src_free_sd' in info and info['src_free_sd'] != '':
-            return info['src_free_sd']
-        return 'No url found'
+        for quality in QUALITIES:
+            if quality in info and info[quality] != '':
+                return info[quality]
+        return 'No URL found'
 
     # wrapper function - takes url and returns response
     def _get(self, url_params: str, debug=False) -> dict:
@@ -161,6 +157,8 @@ def options_parser():  # argument parser
         '-m', '--movie', help='downloads the ID of a movie', default=False)
     parser.add_argument(
         '-s', '--show', help='downloads the ID of a show', default=False)
+    parser.add_argument(
+        '-q', '--quality', help='choose quality', default=False)
     args = parser.parse_args()
 
     downloader = Downloader(args.debug, args.ascii)
