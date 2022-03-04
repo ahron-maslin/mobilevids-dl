@@ -22,7 +22,6 @@ PASSWORD = ''
 USERNAME = ''
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
-
 HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Host': 'mobilevids.org',
            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
@@ -81,8 +80,10 @@ class Downloader(object):
             download(video, save_path)
             print('\n')
 
-    def quality(self, info: list):  # quality sorter
-
+    def get_quality(self, info: list): 
+        """
+        
+        """
         for quality in QUALITIES:
             if quality in info and info[quality] != '':
                 return info[quality]
@@ -109,13 +110,13 @@ class Downloader(object):
                 f'No results found for "{search_query}" - exiting!')
 
         print("Search results: ")
-        index = 1
+        counter = 1
         for i in response['items']:
             print(
-                f'{str(index)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
+                f'{str(counter)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
             if self.ascii:
                 imagetoascii.convert_to_ascii(i['poster_thumbnail'])
-            index = index + 1
+            counter = counter + 1
 
         show_id = input('Enter ID: ').lower()
         for i in response['items']:
@@ -131,10 +132,10 @@ class Downloader(object):
         movie_json = self.get_json(GET_VIDEO_URL.format(self.user_id, self.user_token, movie_id))
         print(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
         save_path = DOWNLOAD_DIRECTORY + \
-            os.path.basename(self.quality(
+            os.path.basename(self.get_quality(
                 movie_json)).split('?', 1)[0]
         if not os.path.isfile(save_path):
-            download(self.quality(movie_json), save_path)
+            download(self.get_quality(movie_json), save_path)
             print('\n')
 
     def get_show_by_id(self, show_id: str):
@@ -151,7 +152,7 @@ class Downloader(object):
         while index < len(season_json['season_list'][str(season_chosen)]):
             episode = str(season_json["season_list"][str(season_chosen)][index][1])
             episode_info = self.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season_chosen, episode))
-            self.wget_wrapper(self.quality(episode_info), tv_folder_name)
+            self.wget_wrapper(self.get_quality(episode_info), tv_folder_name)
             index = index + 1
 
        
@@ -162,7 +163,7 @@ def options_parser():
     parser.add_argument(
         '-a', '--ascii', help='show ascii art', action='store_true')
     parser.add_argument(
-        '-d', '--debug', help='debugs the program- duh', action='store_true')
+        '-d', '--debug', help='debugs the program - duh', action='store_true')
     parser.add_argument(
         '-i', '--info', help='show info about movie/show', action='store_true')
     parser.add_argument(
