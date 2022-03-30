@@ -98,16 +98,17 @@ class Downloader(object):
         print(f'[!] Debugging mode enabled: {response}') if self.debug else None
         return response
 
-    def search(self):
+    def search(self, search_query = None):
         """
         Search for media
         """
-        search_query = input('Search for something: ').lower()
+        if not search_query:
+            search_query = input('Search for something: ').lower()
         response = self.get_json(SEARCH_URL.format(self.user_id, self.user_token, search_query))
 
         if response['items'] == None:
-            raise ValueError(
-                f'No results found for "{search_query}" - exiting!')
+                print(f'[!] No results found for "{search_query}" - exiting!')
+                exit()
 
         print("Search results: ")
         counter = 1
@@ -160,6 +161,7 @@ class Downloader(object):
 def options_parser():
     parser = argparse.ArgumentParser(
         description='Mobilevids Downloader script', prog='mobilevids-dl.py')
+    parser.add_argument('search', nargs='?')
     parser.add_argument(
         '-a', '--ascii', help='show ascii art', action='store_true')
     parser.add_argument(
@@ -174,7 +176,9 @@ def options_parser():
 
     downloader = Downloader(args.debug, args.ascii)
 
-    if args.movie:
+    if args.search:
+        downloader.search(args.search)
+    elif args.movie:
         downloader.get_movie_by_id(args.movie)
     elif args.show:
         downloader.get_show_by_id(args.show)
