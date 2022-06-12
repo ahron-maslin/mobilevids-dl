@@ -83,7 +83,7 @@ class Downloader(object):
 
     def get_quality(self, info: list): 
         """
-        
+        Self explanatory...
         """
         for quality in QUALITIES:
             if quality in info and info[quality] != '':
@@ -93,7 +93,6 @@ class Downloader(object):
     def get_json(self, url: str) -> dict:
         """
         Returns JSON response from URL
-
         """
         response = json.loads(session.get(url).text)
         print(f'[!] Debugging mode enabled: {response}') if self.debug else None
@@ -104,7 +103,7 @@ class Downloader(object):
         Search for media
         """
         if not search_query:
-            search_query = input('Search for something: ').lower()
+            search_query = input('[?] Search for something: ').lower()
         response = self.get_json(SEARCH_URL.format(self.user_id, self.user_token, search_query))
 
         if response['items'] == None:
@@ -154,7 +153,7 @@ class Downloader(object):
             print(f"Name: {season_json['show']['title']}\nID: {season_json['show']['id']}\nYear: {season_json['show']['year']}\nDescription: {season_json['show']['plot']}\n")
     
         season_chosen = input(
-            f'Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
+            f'[?] Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
        
         while index < len(season_json['season_list'][str(season_chosen)]):
             episode = str(season_json['season_list'][str(season_chosen)][index][1])
