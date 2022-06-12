@@ -52,10 +52,11 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 class Downloader(object):
-    def __init__(self, debug=False, ascii=False) -> None:
+    def __init__(self, debug=False, ascii=False, info=False) -> None:
         super().__init__()
         self.debug = debug
         self.ascii = ascii
+        self.info = info
         self.user_token, self.user_id = self.login()
 
     def login(self) -> str:  # login function
@@ -131,6 +132,8 @@ class Downloader(object):
         Takes a movie id and downloads it to the specified directory
         """  
         movie_json = self.get_json(GET_VIDEO_URL.format(self.user_id, self.user_token, movie_id))
+        if self.info:
+            print(f"Name: {movie_json['title']}\nID: {movie_json['id']}\nYear: {movie_json['year']}\nDescription: {movie_json['plot']}")
         print(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
         save_path = DOWNLOAD_DIRECTORY + \
             os.path.basename(self.get_quality(
@@ -147,11 +150,14 @@ class Downloader(object):
         season_json = self.get_json(GET_SEASON_URL.format(self.user_id, self.user_token, show_id))
         print(f'[*] Showing info for {season_json["show"]["title"]}')
         tv_folder_name = season_json['show']['title'].replace(' ', '_')
+        if self.info:
+            print(f"Name: {season_json['show']['title']}\nID: {season_json['show']['id']}\nYear: {season_json['show']['year']}\nDescription: {season_json['show']['plot']}\n")
+    
         season_chosen = input(
             f'Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
-    
+       
         while index < len(season_json['season_list'][str(season_chosen)]):
-            episode = str(season_json["season_list"][str(season_chosen)][index][1])
+            episode = str(season_json['season_list'][str(season_chosen)][index][1])
             episode_info = self.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season_chosen, episode))
             self.wget_wrapper(self.get_quality(episode_info), tv_folder_name)
             index = index + 1
@@ -174,7 +180,7 @@ def options_parser():
         '-s', '--show', help='downloads the ID of a show', default=False)
     args = parser.parse_args()
 
-    downloader = Downloader(args.debug, args.ascii)
+    downloader = Downloader(args.debug, args.ascii, args.info)
 
     if args.search:
         downloader.search(args.search)
