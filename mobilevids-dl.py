@@ -17,9 +17,6 @@ SEARCH_URL = 'https://mobilevids.org/webapi/videos/search.php?&p=1&user_id={}&to
 GET_VIDEO_URL = 'https://mobilevids.org/webapi/videos/get_video.php?user_id={}&token={}&id={}'
 GET_SEASON_URL = 'https://mobilevids.org/webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
 GET_SINGLE_EPISODE_URL = 'https://mobilevids.org/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
-# Can fill these in manually
-PASSWORD = '' 
-USERNAME = ''
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
 HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
