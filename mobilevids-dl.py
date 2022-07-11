@@ -25,7 +25,9 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Accept': '*/*',
            'Accept-Language': 'en-US,en;q=0.5',
            'Accept-Encoding': 'gzip, deflate, br',
+           'sec-ch-ua' : '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+           'Cookie': 'menuNodes=[{"name":"Movies","icon":"mdi-movie","children":[{"name":"Browse","path":"/movies","icon":"mdi-view-list"},{"name":"Popular","path":"/top_movies","icon":"mdi-movie-filter"}]},{"name":"TV Shows","icon":"mdi-remote-tv","children":[{"name":"Browse ","path":"/tvshows","icon":"mdi-view-list"},{"name":"Popular ","path":"/top_shows","icon":"mdi-monitor-star"},{"name":"Calendar","path":"/show_calendar","icon":"mdi-calendar"}]}]',
            'X-Requested-With': 'XMLHttpRequest',
            'Content-Length': '77',
            'Origin': 'https://mobilevids.org',
@@ -33,7 +35,8 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Referer': 'https://mobilevids.org/legacy/',
            'Sec-Fetch-Dest': 'empty',
            'Sec-Fetch-Mode': 'cors',
-           'Sec-Fetch-Site': 'same-origin'
+           'Sec-Fetch-Site': 'same-origin',
+           'sec-ch-ua-platform' : '"Windows"'
            }
 
 
