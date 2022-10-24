@@ -111,13 +111,11 @@ class Downloader(object):
                 exit()
 
         print("Search results: ")
-        counter = 1
-        for i in response['items']:
+        for counter, i in enumerate(response['items']):
             print(
-                f'{str(counter)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
+                f'{str(counter + 1)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
             if self.ascii:
                 imagetoascii.convert_to_ascii(i['poster_thumbnail'])
-            counter = counter + 1
 
         show_id = input('Enter ID: ').lower()
         for i in response['items']:
