@@ -18,6 +18,7 @@ GET_VIDEO_URL = 'https://mobilevids.org/webapi/videos/get_video.php?user_id={}&t
 GET_SEASON_URL = 'https://mobilevids.org/webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
 GET_SINGLE_EPISODE_URL = 'https://mobilevids.org/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
 DOWNLOAD_DIRECTORY = os.path.expanduser('~') + '/downloads/'
+CUR_DIR = DOWNLOAD_DIRECTORY
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
 HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
            'Host': 'mobilevids.org',
@@ -41,9 +42,10 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
 
 
 def signal_handler(sig, frame):  # keyboard interrupt handler
-    for file in os.listdir(DOWNLOAD_DIRECTORY):
+    for file in os.listdir(CUR_DIR):
         if file.endswith(".tmp"):
-            os.remove(os.path.join(DOWNLOAD_DIRECTORY, file))
+            filepath = os.path.join(CUR_DIR, file)
+            os.remove(filepath)
     print('\n[!] CTRL-C pressed - exiting!')
     exit(0)
 
@@ -72,9 +74,11 @@ class Downloader(object):
 
     def wget_wrapper(self, video: str, folder: str):  # wrapper for the wget module
         print(f'\nDownloading {video}')
-        if not os.path.exists(DOWNLOAD_DIRECTORY + folder):
-            os.mkdir(DOWNLOAD_DIRECTORY + folder)
-        save_path = DOWNLOAD_DIRECTORY + folder + '/' + \
+        global CUR_DIR
+        CUR_DIR = DOWNLOAD_DIRECTORY + folder
+        if not os.path.exists(CUR_DIR):
+            os.mkdir(CUR_DIR)
+        save_path = CUR_DIR + '/' + \
             os.path.basename(video).split('?', 1)[0]
         print(f'to {save_path}')
         if not os.path.isfile(save_path):
@@ -109,6 +113,12 @@ class Downloader(object):
         if response['items'] == None:
                 print(f'[!] No results found for "{search_query}" - exiting!')
                 exit()
+
+        if len(response['items']) == 1:
+            print("[!] Only one result found - downloading it!")
+            first_id = response['items'][0]
+            self.get_movie_by_id(first_id['id']) if first_id['cat_id'] == 1 else self.get_show_by_id(first_id['id'])
+            exit()
 
         print("Search results: ")
         for counter, i in enumerate(response['items']):
@@ -197,13 +207,17 @@ if __name__ == '__main__':  # main function
         USERNAME, PASSWORD = creds[0], creds[2]
     except (IOError, netrc.NetrcParseError) as e:
         raise BaseException(
-        'Did not find valid netrc file:\n' 
-        'create a .netrc file with the following format:\n'
-        '   machine mobilevids\n'
-        '   login YOUR_USERNAME\n'
-        '   password YOUR_PASSWORD\n')
+        
+        '''
+        Did not find valid netrc file: 
+        create a .netrc file with the following format:
+            machine mobilevids
+            login YOUR_USERNAME
+            password YOUR_PASSWORD
+        '''
+        )
 
            
-    if not os.path.exists(DOWNLOAD_DIRECTORY):
-        os.mkdir(DOWNLOAD_DIRECTORY)
+    if not os.path.exists(CUR_DIR):
+        os.mkdir(CUR_DIR)
     options_parser()
