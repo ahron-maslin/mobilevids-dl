@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+
+from mvdl import mobilevids_dl
+
+mobilevids_dl.main()
