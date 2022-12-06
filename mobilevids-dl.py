@@ -7,6 +7,9 @@ import requests
 from wget import download
 import os
 import signal
+from typing import List
+
+
 import imagetoascii
 
 
@@ -55,7 +58,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 class Downloader(object):
     def __init__(self, debug=False, ascii=False, info=False) -> None:
-        super().__init__()
         self.debug = debug
         self.ascii = ascii
         self.info = info
@@ -75,7 +77,7 @@ class Downloader(object):
     def wget_wrapper(self, video: str, folder: str):  # wrapper for the wget module
         print(f'\nDownloading {video}')
         global CUR_DIR
-        CUR_DIR = DOWNLOAD_DIRECTORY + folder
+        CUR_DIR = DOWNLOAD_DIRECTORY + str(folder)
         if not os.path.exists(CUR_DIR):
             os.mkdir(CUR_DIR)
         save_path = CUR_DIR + '/' + \
@@ -85,7 +87,7 @@ class Downloader(object):
             download(video, save_path)
             print('\n')
 
-    def get_quality(self, info: list): 
+    def get_quality(self, info: List[str]): 
         """
         Self explanatory...
         """
@@ -165,26 +167,63 @@ class Downloader(object):
        
         while index < len(season_json['season_list'][str(season_chosen)]):
             episode = str(season_json['season_list'][str(season_chosen)][index][1])
-            episode_info = self.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season_chosen, episode))
-            self.wget_wrapper(self.get_quality(episode_info), tv_folder_name)
+            self.get_single_episode(show_id, season_chosen, episode, path=tv_folder_name)
             index = index + 1
+    
+    def get_single_episode(self, show_id: str, season: str, episode: str, path=None):
+        episode_info = self.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season, episode))
+        self.wget_wrapper(self.get_quality(episode_info), path)
 
        
 
 def options_parser():
+    # groups for general options and media options
     parser = argparse.ArgumentParser(
         description='Mobilevids Downloader script', prog='mobilevids-dl.py')
+
     parser.add_argument('search', nargs='?')
     parser.add_argument(
-        '-a', '--ascii', help='show ascii art', action='store_true')
+        '-a', 
+        '--ascii', 
+        help='show ascii art', 
+        action='store_true')
+
     parser.add_argument(
-        '-d', '--debug', help='debugs the program - duh', action='store_true')
+        '-d', 
+        '--debug', 
+        help='debugs the program - duh', 
+        action='store_true')
+
     parser.add_argument(
-        '-i', '--info', help='show info about movie/show', action='store_true')
+        '-i', 
+        '--info', 
+        help='show info about movie/show', 
+        action='store_true')
+    
     parser.add_argument(
-        '-m', '--movie', help='downloads the ID of a movie', default=False)
+        '-e', 
+        '--episode', 
+        help='download a single episode (must be used with -t [TV ID] and -s [SEASON]', 
+        default=False)
+
     parser.add_argument(
-        '-s', '--show', help='downloads the ID of a show', default=False)
+        '-m', 
+        '--movie', 
+        help='downloads the ID of a movie', 
+        default=False)
+
+    parser.add_argument(
+        '-s', 
+        '--season', 
+        help='specify season to download (must use with -t)', 
+        default=False)
+
+    parser.add_argument(
+        '-t', 
+        '--tv', 
+        help='download a TV show based on it\'s ID', 
+        default=False)
+
     args = parser.parse_args()
 
     downloader = Downloader(args.debug, args.ascii, args.info)
@@ -193,8 +232,11 @@ def options_parser():
         downloader.search(args.search)
     elif args.movie:
         downloader.get_movie_by_id(args.movie)
-    elif args.show:
-        downloader.get_show_by_id(args.show)
+    elif args.tv:
+        if args.episode and args.season:
+            downloader.get_single_episode(args.tv, args.season, args.episode)
+        else:
+            downloader.get_show_by_id(args.tv)
     else:
         print('[+] Movie/Show not specified - running search')
         downloader.search()
@@ -212,8 +254,8 @@ if __name__ == '__main__':  # main function
         Did not find valid netrc file: 
         create a .netrc file with the following format:
             machine mobilevids
-            login YOUR_USERNAME
-            password YOUR_PASSWORD
+            login MOBILEVIDS_USERNAME
+            password MOBILEVIDS_PASSWORD
         '''
         )
 
