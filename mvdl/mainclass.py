@@ -1,5 +1,5 @@
 import os
-from wget import download
+from wget import download, detect_filename
 import logging
 
 from. define import *
@@ -66,12 +66,7 @@ class Downloader:
 		if self.info:
 			logging.info(f"Name: {movie_json['title']}\nID: {movie_json['id']}\nYear: {movie_json['year']}\nDescription: {movie_json['plot']}")
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
-		save_path = DOWNLOAD_DIRECTORY + \
-			os.path.basename(self.get_quality(
-				movie_json)).split('?', 1)[0]
-		if not os.path.isfile(save_path):
-			download(self.get_quality(movie_json), save_path)
-			logging.info('\n')
+		wget_wrapper(self.get_quality(movie_json), DOWNLOAD_DIRECTORY)
 
 	def get_show_by_id(self, show_id: str):
 		"""
@@ -79,8 +74,10 @@ class Downloader:
 		"""
 		index = 0
 		season_json = get_json(self.session, GET_SEASON_URL.format(self.user_id, self.auth_token, show_id))
-		logging.info(f'[*] Showing info for {season_json["show"]["title"]}')
-		tv_folder_name = season_json['show']['title'].replace(' ', '_')
+		season_title = season_json["show"]["title"]
+		logging.info(f'[*] Showing info for {season_title}')
+		global DOWNLOAD_DIRECTORY
+		DOWNLOAD_DIRECTORY = DOWNLOAD_DIRECTORY + season_title.replace(' ', '_') + '/'
 		if self.info:
 			logging.info(f"Name: {season_json['show']['title']}\nID: {season_json['show']['id']}\nYear: {season_json['show']['year']}\nDescription: {season_json['show']['plot']}\n")
 	
@@ -89,10 +86,10 @@ class Downloader:
 	   
 		while index < len(season_json['season_list'][str(season_chosen)]):
 			episode = str(season_json['season_list'][str(season_chosen)][index][1])
-			self.get_single_episode(show_id, season_chosen, episode, path=tv_folder_name)
+			self.get_single_episode(show_id, season_chosen, episode, DOWNLOAD_DIRECTORY)
 			index = index + 1
 	
-	def get_single_episode(self, show_id: str, season: str, episode: str, path=None):
+	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
 		wget_wrapper(self.get_quality(episode_info), path)
 
