@@ -6,7 +6,7 @@ from wget import download, detect_filename
 import os
 import logging
 
-from .define import * #only import whats needed
+from .define import LOGIN_PAYLOAD, LOGIN_URL, HEADERS 
 
 
 def session_init():
@@ -17,9 +17,8 @@ def session_init():
 
 def login(session) -> str:
 	try:
-
 		creds = netrc.netrc('.netrc').authenticators('mobilevids')
-		logging.debug('Trying netrc file %s', path)
+		logging.debug('Trying netrc file %s', os.path)
 		login_string = LOGIN_PAYLOAD.format(username=creds[0], password=creds[2])
 	except (IOError, netrc.NetrcParseError) as e:
 		raise BaseException(

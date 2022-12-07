@@ -1,8 +1,7 @@
 import os
-from wget import download, detect_filename
 import logging
 
-from. define import *
+from. define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
 from .imagetoascii import image_to_ascii
 from .network import get_json, wget_wrapper
 
@@ -14,6 +13,7 @@ class Downloader:
 		self.user_id = user_id
 		self.ascii = ascii
 		self.info = info
+		self.download_dir = DOWNLOAD_DIRECTORY
 
 
 	def get_quality(self, info: list): 
@@ -66,7 +66,7 @@ class Downloader:
 		if self.info:
 			logging.info(f"Name: {movie_json['title']}\nID: {movie_json['id']}\nYear: {movie_json['year']}\nDescription: {movie_json['plot']}")
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
-		wget_wrapper(self.get_quality(movie_json), DOWNLOAD_DIRECTORY)
+		wget_wrapper(self.get_quality(movie_json), self.download_dir)
 
 	def get_show_by_id(self, show_id: str):
 		"""
@@ -76,8 +76,7 @@ class Downloader:
 		season_json = get_json(self.session, GET_SEASON_URL.format(self.user_id, self.auth_token, show_id))
 		season_title = season_json["show"]["title"]
 		logging.info(f'[*] Showing info for {season_title}')
-		global DOWNLOAD_DIRECTORY
-		DOWNLOAD_DIRECTORY = DOWNLOAD_DIRECTORY + season_title.replace(' ', '_') + '/'
+		self.download_dir = self.download_dir + season_title.replace(' ', '_') + '/'
 		if self.info:
 			logging.info(f"Name: {season_json['show']['title']}\nID: {season_json['show']['id']}\nYear: {season_json['show']['year']}\nDescription: {season_json['show']['plot']}\n")
 	
@@ -86,11 +85,23 @@ class Downloader:
 	   
 		while index < len(season_json['season_list'][str(season_chosen)]):
 			episode = str(season_json['season_list'][str(season_chosen)][index][1])
-			self.get_single_episode(show_id, season_chosen, episode, DOWNLOAD_DIRECTORY)
+			self.get_single_episode(show_id, season_chosen, episode, self.download_dir)
 			index = index + 1
 	
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
 		wget_wrapper(self.get_quality(episode_info), path)
+
+	def signal_handler(self, sig, frame):  # keyboard interrupt handler
+		logging.debug('SIGINT captured')
+		for file in os.listdir(self.download_dir):
+			if file.endswith(".tmp"):
+				filepath = os.path.join(self.download_dir, file)
+				os.remove(filepath)
+		if len(os.listdir(self.download_dir)):
+			pass
+			# os.rmdir(self.download_dir)
+		logging.error('\n[!] CTRL-C pressed - exiting!')
+		exit(1)
 
 
