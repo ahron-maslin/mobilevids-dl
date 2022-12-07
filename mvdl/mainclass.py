@@ -27,7 +27,7 @@ class Downloader:
 
 	def search(self, search_query:str = None):
 		"""
-		Search for media given an iput query
+		Search for media given an input query
 		Returns an ID for a movie or a TV show
 		"""
 		if not search_query:
@@ -47,7 +47,7 @@ class Downloader:
 		logging.info("Search results: ")
 		for counter, i in enumerate(response['items']):
 			logging.info(
-				f'{str(counter + 1)}) Name: {i["title"]}  ID: {str(i["id"])}  Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
+				f'{str(counter + 1)}) ID: {str(i["id"])} Name: {i["title"]} Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
 			if self.ascii:
 				image_to_ascii(i['poster_thumbnail'])
 
@@ -89,8 +89,11 @@ class Downloader:
 	   
 		while index < len(season_json['season_list'][str(season_chosen)]):
 			episode = str(season_json['season_list'][str(season_chosen)][index][1])
-			episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season_chosen, episode))
-			wget_wrapper(self.get_quality(episode_info), tv_folder_name)
+			self.get_single_episode(show_id, season_chosen, episode, path=tv_folder_name)
 			index = index + 1
+	
+	def get_single_episode(self, show_id: str, season: str, episode: str, path=None):
+		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
+		wget_wrapper(self.get_quality(episode_info), path)
 
-	   
+

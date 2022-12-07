@@ -41,18 +41,17 @@ def login(session) -> str:
 	return login_info['auth_token'], login_info['id']
 
 
-def wget_wrapper(session, video: str, folder: str):  # wrapper for the wget module
-	print(f'\nDownloading {video}')
+def wget_wrapper(video: str, folder: str):  # wrapper for the wget module
 	global CUR_DIR
 	CUR_DIR = DOWNLOAD_DIRECTORY + folder
 	if not os.path.exists(CUR_DIR):
 		os.mkdir(CUR_DIR)
 	save_path = CUR_DIR + '/' + \
 		os.path.basename(video).split('?', 1)[0]
-	print(f'to {save_path}')
+	logging.debug(save_path)
+	logging.info(f'Downloading {video} to {save_path}')
 	if not os.path.isfile(save_path):
 		download(video, save_path)
-		print('\n')
 
 
 def get_json(session, url: str) -> dict:

@@ -21,7 +21,7 @@ def signal_handler(sig, frame):  # keyboard interrupt handler
 		if file.endswith(".tmp"):
 			filepath = os.path.join(CUR_DIR, file)
 			os.remove(filepath)
-	print('\n[!] CTRL-C pressed - exiting!')
+	logging.error('\n[!] CTRL-C pressed - exiting!')
 	exit(0)
 
 
@@ -51,7 +51,6 @@ def main():
 		else:
 			downloader.get_show_by_id(args.tv)
 	else:
-		print('[+] Movie/Show not specified - running search')
 		downloader.search()
 
 
