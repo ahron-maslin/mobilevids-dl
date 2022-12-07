@@ -32,27 +32,27 @@ def main():
 	logging.debug(__VERSION__)
 
 	if not os.path.exists(CUR_DIR):
+		logging.debug(f'Creating Directory {CUR_DIR}')
 		os.mkdir(CUR_DIR)
 
 	args = options_parser()
-	print(args)
-	logging.error(args)
-
 	session = session_init()
 	auth_token, user_id = login(session)
 
-	downloader = Downloader(auth_token, user_id, args.ascii, args.info)
+	downloader = Downloader(session, auth_token, user_id, args.ascii, args.info)
 
 	if args.search:
 		downloader.search(args.search)
 	elif args.movie:
 		downloader.get_movie_by_id(args.movie)
-	elif args.show:
-		downloader.get_show_by_id(args.show)
+	elif args.tv:
+		if args.episode and args.season:
+			downloader.get_single_episode(args.tv, args.season, args.episode)
+		else:
+			downloader.get_show_by_id(args.tv)
 	else:
 		print('[+] Movie/Show not specified - running search')
 		downloader.search()
-
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ from .define import * #only import whats needed
 
 def session_init():
 	session = requests.Session()
+	logging.debug('Created Session')
 	return session
 
 

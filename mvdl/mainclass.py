@@ -4,10 +4,12 @@ import logging
 
 from. define import *
 from .imagetoascii import image_to_ascii
+from .network import get_json, wget_wrapper
 
 
 class Downloader:
-	def __init__(self, auth_token, user_id, ascii=False, info=False) -> None:
+	def __init__(self, session, auth_token, user_id, ascii=False, info=False) -> None:
+		self.session = session
 		self.auth_token = auth_token
 		self.user_id = user_id
 		self.ascii = ascii
@@ -23,13 +25,14 @@ class Downloader:
 				return info[quality]
 		return 'No URL found' # raise instead?
 
-	def search(self, search_query = None):
+	def search(self, search_query:str = None):
 		"""
-		Search for media
+		Search for media given an iput query
+		Returns an ID for a movie or a TV show
 		"""
 		if not search_query:
 			search_query = input('[?] Search for something: ').lower()
-		response = self.session.get_json(SEARCH_URL.format(self.user_id, self.user_token, search_query))
+		response = get_json(self.session, SEARCH_URL.format(self.user_id, self.auth_token, search_query))
 
 		if response['items'] == None:
 				logging.error(f'[!] No results found for "{search_query}" - exiting!')
@@ -59,7 +62,7 @@ class Downloader:
 		"""
 		Takes a movie id and downloads it to the specified directory
 		"""  
-		movie_json = self.session.get_json(GET_VIDEO_URL.format(self.user_id, self.user_token, movie_id))
+		movie_json = get_json(self.session, GET_VIDEO_URL.format(self.user_id, self.auth_token, movie_id))
 		if self.info:
 			logging.info(f"Name: {movie_json['title']}\nID: {movie_json['id']}\nYear: {movie_json['year']}\nDescription: {movie_json['plot']}")
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
@@ -75,7 +78,7 @@ class Downloader:
 		Takes a show id and downloads the chosen season to the specified directory
 		"""
 		index = 0
-		season_json = self.session.get_json(GET_SEASON_URL.format(self.user_id, self.user_token, show_id))
+		season_json = get_json(self.session, GET_SEASON_URL.format(self.user_id, self.auth_token, show_id))
 		logging.info(f'[*] Showing info for {season_json["show"]["title"]}')
 		tv_folder_name = season_json['show']['title'].replace(' ', '_')
 		if self.info:
@@ -86,8 +89,8 @@ class Downloader:
 	   
 		while index < len(season_json['season_list'][str(season_chosen)]):
 			episode = str(season_json['season_list'][str(season_chosen)][index][1])
-			episode_info = self.session.get_json(GET_SINGLE_EPISODE_URL.format(self.user_id, self.user_token, show_id, season_chosen, episode))
-			self.wget_wrapper(self.get_quality(episode_info), tv_folder_name)
+			episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season_chosen, episode))
+			wget_wrapper(self.get_quality(episode_info), tv_folder_name)
 			index = index + 1
 
 	   
