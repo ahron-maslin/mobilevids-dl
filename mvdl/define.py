@@ -7,6 +7,7 @@ SEARCH_URL = 'https://mobilevids.org/webapi/videos/search.php?&p=1&user_id={}&to
 GET_VIDEO_URL = 'https://mobilevids.org/webapi/videos/get_video.php?user_id={}&token={}&id={}'
 GET_SEASON_URL = 'https://mobilevids.org/webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
 GET_SINGLE_EPISODE_URL = 'https://mobilevids.org/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
+LOGIN_PAYLOAD = 'data=%7B%22Name%22%3A%22{username}%22%2C%22Password%22%3A%22{password}%22%7D'
 DOWNLOAD_DIRECTORY = path.expanduser('~') + '/downloads/'
 CUR_DIR = DOWNLOAD_DIRECTORY
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
