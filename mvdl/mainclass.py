@@ -1,5 +1,6 @@
 import os
 import logging
+import html
 
 from. define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
 from .imagetoascii import image_to_ascii
@@ -47,7 +48,7 @@ class Downloader:
 		logging.info("Search results: ")
 		for counter, i in enumerate(response['items']):
 			logging.info(
-				f'{str(counter + 1)}) ID: {str(i["id"])} Name: {i["title"]} Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
+				f'{str(counter + 1)}) ID: {str(i["id"])} Name: {html.unescape(i["title"])} Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
 			if self.ascii:
 				image_to_ascii(i['poster_thumbnail'])
 
