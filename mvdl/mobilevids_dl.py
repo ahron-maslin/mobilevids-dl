@@ -2,7 +2,6 @@
 import logging
 import os
 import signal
-from functools import partial
 
 from mvdl import __VERSION__
 from .options import options_parser
@@ -24,7 +23,7 @@ def main():
 	auth_token, user_id = login(session)
 
 	downloader = Downloader(session, auth_token, user_id, args.ascii, args.info)
-	signal.signal(signal.SIGINT, partial(downloader.signal_handler))
+	signal.signal(signal.SIGINT, downloader.signal_handler)
 
 	if args.search:
 		downloader.search(args.search)

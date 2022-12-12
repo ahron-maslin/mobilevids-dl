@@ -2,7 +2,7 @@ import os
 import logging
 import html
 
-from. define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
+from .define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
 from .imagetoascii import image_to_ascii
 from .network import get_json, wget_wrapper
 
@@ -24,7 +24,10 @@ class Downloader:
 		for quality in QUALITIES:
 			if quality in info and info[quality] != '':
 				return info[quality]
-		return 'No URL found' # raise instead?
+		raise Exception(
+			'No video found for the given URL'
+		)
+
 
 	def search(self, search_query:str = None):
 		"""
@@ -59,6 +62,7 @@ class Downloader:
 			elif i['id'] == int(show_id) and i['cat_id'] == 1:
 				self.get_movie_by_id(show_id)
 
+
 	def get_movie_by_id(self, movie_id: str):
 		"""
 		Takes a movie id and downloads it to the specified directory
@@ -68,6 +72,7 @@ class Downloader:
 			logging.info(f"Name: {movie_json['title']}\nID: {movie_json['id']}\nYear: {movie_json['year']}\nDescription: {movie_json['plot']}")
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
 		wget_wrapper(self.get_quality(movie_json), self.download_dir)
+
 
 	def get_show_by_id(self, show_id: str):
 		"""
@@ -89,9 +94,11 @@ class Downloader:
 			self.get_single_episode(show_id, season_chosen, episode, self.download_dir)
 			index = index + 1
 	
+
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
 		wget_wrapper(self.get_quality(episode_info), path)
+
 
 	def signal_handler(self, sig, frame):  # keyboard interrupt handler
 		logging.debug('SIGINT captured')

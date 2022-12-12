@@ -20,7 +20,7 @@ def login(session) -> str:
 		creds = netrc.netrc('.netrc').authenticators('mobilevids')
 		logging.debug('Trying netrc file %s', os.path)
 		login_string = LOGIN_PAYLOAD.format(username=creds[0], password=creds[2])
-	except (IOError, netrc.NetrcParseError) as e:
+	except (IOError, netrc.NetrcParseError):
 		raise BaseException(
 		'''
 		Did not find valid netrc file: 
@@ -41,13 +41,14 @@ def login(session) -> str:
 
 
 def wget_wrapper(video: str, folder):  # wrapper for the wget module
-	print(folder)
 	if not os.path.exists(folder):
 		os.mkdir(folder)
-	print(detect_filename(video))
+
 	save_path = folder + detect_filename(video)
-	logging.debug(save_path)
+
+	logging.debug(f'Saving {save_path} to {folder}')
 	logging.info(f'Downloading {video} to {save_path}')
+	
 	if not os.path.isfile(save_path):
 		download(video, save_path)
 
