@@ -51,7 +51,7 @@ class Downloader:
 		logging.info("Search results: ")
 		for counter, i in enumerate(response['items']):
 			logging.info(
-				f'{str(counter + 1)}) ID: {str(i["id"])} Name: {html.unescape(i["title"])} Type: {"Movie" if i["cat_id"] == 1 else "TV"}')
+				f'{str(counter + 1)}) ID: {str(i["id"])} Name: {html.unescape(i["title"])} {"(Movie)" if i["cat_id"] == 1 else "(TV)"}')
 			if self.ascii:
 				image_to_ascii(i['poster_thumbnail'])
 
