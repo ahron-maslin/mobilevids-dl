@@ -1,7 +1,6 @@
 import os
 import logging
 import html
-import multiprocessing
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -101,6 +100,8 @@ class Downloader:
 		# multithreading
 		num_episodes = len(season_json['season_list'][str(season_chosen)])
 		
+		
+		'''
 		episodes = []
 		for i in range(num_episodes):
 			episodes.append(str(season_json['season_list'][str(season_chosen)][i][1]))
@@ -111,6 +112,12 @@ class Downloader:
 				)
 				for episode in episodes
 			]
+			'''
+
+		for i in range(num_episodes):
+			episode = str(season_json['season_list'][str(season_chosen)][i][1])
+			processThread = threading.Thread(target=self.get_single_episode, args=(show_id, season_chosen, episode, self.download_dir))
+			processThread.start()
 
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
@@ -128,5 +135,4 @@ class Downloader:
 			# os.rmdir(self.download_dir)
 		logging.error('\n[!] CTRL-C pressed - exiting!')
 		exit(1)
-
-
+		
