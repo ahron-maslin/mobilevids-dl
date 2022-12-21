@@ -44,13 +44,15 @@ def wget_wrapper(video: str, folder):  # wrapper for the wget module
 	if not os.path.exists(folder):
 		os.mkdir(folder)
 
-	save_path = folder + detect_filename(video)
+	filename = detect_filename(video)
+	save_path = folder + filename
 
 	logging.debug(f'Saving {save_path} to {folder}')
-	logging.info(f'Downloading {video} to {save_path}')
+	logging.info(f'Downloading {filename} to {save_path}')
 	
 	if not os.path.isfile(save_path):
 		download(video, save_path)
+		logging.info('\n')  # for padding
 
 
 def get_json(session, url: str) -> dict:
