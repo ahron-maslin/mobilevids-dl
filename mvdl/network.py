@@ -2,9 +2,10 @@ import requests
 import netrc
 import json
 from json import JSONDecodeError
-from wget import download, detect_filename
+from wget import detect_filename
 import os
 import logging
+from pySmartDL import SmartDL
 
 from .define import LOGIN_PAYLOAD, LOGIN_URL, HEADERS 
 
@@ -50,7 +51,9 @@ def wget_wrapper(video: str, folder):  # wrapper for the wget module
 	logging.info(f'Downloading {video} to {save_path}')
 	
 	if not os.path.isfile(save_path):
-		download(video, save_path)
+		dl_obj = SmartDL(video, save_path)
+		dl_obj.start()
+		
 
 
 def get_json(session, url: str) -> dict:
