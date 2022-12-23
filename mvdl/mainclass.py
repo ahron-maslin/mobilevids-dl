@@ -1,6 +1,8 @@
 import os
 import logging
 import html
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
 from .imagetoascii import image_to_ascii
@@ -69,7 +71,11 @@ class Downloader:
 		"""  
 		movie_json = get_json(self.session, GET_VIDEO_URL.format(self.user_id, self.auth_token, movie_id))
 		if self.info:
-			logging.info(f"Name: {movie_json['title']}\nID: {movie_json['id']}\nYear: {movie_json['year']}\nDescription: {movie_json['plot']}")
+			logging.info(f"Name: {movie_json['title']}\n"
+										"ID: {movie_json['id']}\n"
+										"Year: {movie_json['year']}\n"
+										"Description: {movie_json['plot']}")
+
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
 		wget_wrapper(self.get_quality(movie_json), self.download_dir)
 
@@ -78,22 +84,40 @@ class Downloader:
 		"""
 		Takes a show id and downloads the chosen season to the specified directory
 		"""
-		index = 0
 		season_json = get_json(self.session, GET_SEASON_URL.format(self.user_id, self.auth_token, show_id))
 		season_title = season_json["show"]["title"]
 		logging.info(f'[*] Showing info for {season_title}')
 		self.download_dir = self.download_dir + season_title.replace(' ', '_') + '/'
 		if self.info:
-			logging.info(f"Name: {season_json['show']['title']}\nID: {season_json['show']['id']}\nYear: {season_json['show']['year']}\nDescription: {season_json['show']['plot']}\n")
+			logging.info(f"Name: {season_json['show']['title']}\n"
+										"ID: {season_json['show']['id']}\n"
+										"Year: {season_json['show']['year']}\n"
+										"Description: {season_json['show']['plot']}\n")
 	
 		season_chosen = input(
 			f'[?] Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
-	   
-		while index < len(season_json['season_list'][str(season_chosen)]):
-			episode = str(season_json['season_list'][str(season_chosen)][index][1])
-			self.get_single_episode(show_id, season_chosen, episode, self.download_dir)
-			index = index + 1
-	
+
+		# multithreading
+		num_episodes = len(season_json['season_list'][str(season_chosen)])
+		
+		
+		'''
+		episodes = []
+		for i in range(num_episodes):
+			episodes.append(str(season_json['season_list'][str(season_chosen)][i][1]))
+
+		with ThreadPoolExecutor(max_workers=4) as pool:
+			[pool.submit(
+				self.get_single_episode, show_id, season_chosen, episode, self.download_dir
+				)
+				for episode in episodes
+			]
+			'''
+
+		for i in range(num_episodes):
+			episode = str(season_json['season_list'][str(season_chosen)][i][1])
+			processThread = threading.Thread(target=self.get_single_episode, args=(show_id, season_chosen, episode, self.download_dir))
+			processThread.start()
 
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
@@ -111,5 +135,4 @@ class Downloader:
 			# os.rmdir(self.download_dir)
 		logging.error('\n[!] CTRL-C pressed - exiting!')
 		exit(1)
-
-
+		

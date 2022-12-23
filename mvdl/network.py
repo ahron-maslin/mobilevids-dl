@@ -45,10 +45,11 @@ def wget_wrapper(video: str, folder):  # wrapper for the wget module
 	if not os.path.exists(folder):
 		os.mkdir(folder)
 
-	save_path = folder + detect_filename(video)
+	filename = detect_filename(video)
+	save_path = folder + filename
 
-	logging.debug(f'Saving {save_path} to {folder}')
-	logging.info(f'Downloading {video} to {save_path}')
+	logging.debug(f'Save path {save_path}')
+	logging.info(f'Downloading {filename} to {folder}')
 	
 	if not os.path.isfile(save_path):
 		dl_obj = SmartDL(video, save_path)
@@ -60,6 +61,9 @@ def get_json(session, url: str) -> dict:
 	"""
 	Returns JSON response from URL
 	"""
-	response = json.loads(session.get(url).text)
-	logging.debug(response)
-	return response
+	response = session.get(url)
+	response_json = json.loads(response.text)
+	logging.debug(response.headers)
+	logging.debug(response_json)
+	
+	return response_json
