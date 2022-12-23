@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
 from .imagetoascii import image_to_ascii
-from .network import get_json, wget_wrapper
+from .network import get_json, dl_wrapper
 
 
 class Downloader:
@@ -77,7 +77,7 @@ class Downloader:
 										"Description: {movie_json['plot']}")
 
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
-		wget_wrapper(self.get_quality(movie_json), self.download_dir)
+		dl_wrapper(self.get_quality(movie_json), self.download_dir)
 
 
 	def get_show_by_id(self, show_id: str):
@@ -97,31 +97,18 @@ class Downloader:
 		season_chosen = input(
 			f'[?] Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
 
-		# multithreading
 		num_episodes = len(season_json['season_list'][str(season_chosen)])
-		
-		
-		'''
-		episodes = []
-		for i in range(num_episodes):
-			episodes.append(str(season_json['season_list'][str(season_chosen)][i][1]))
-
-		with ThreadPoolExecutor(max_workers=4) as pool:
-			[pool.submit(
-				self.get_single_episode, show_id, season_chosen, episode, self.download_dir
-				)
-				for episode in episodes
-			]
-			'''
 
 		for i in range(num_episodes):
 			episode = str(season_json['season_list'][str(season_chosen)][i][1])
-			processThread = threading.Thread(target=self.get_single_episode, args=(show_id, season_chosen, episode, self.download_dir))
-			processThread.start()
+			self.get_single_episode(show_id, season_chosen, episode, self.download_dir)
+
+			# processThread = threading.Thread(target=self.get_single_episode, args=(show_id, season_chosen, episode, self.download_dir))
+			# processThread.start()
 
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
-		wget_wrapper(self.get_quality(episode_info), path)
+		dl_wrapper(self.get_quality(episode_info), path)
 
 
 	def signal_handler(self, sig, frame):  # keyboard interrupt handler

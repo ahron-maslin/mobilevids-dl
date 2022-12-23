@@ -16,7 +16,7 @@ def session_init():
 	return session
 
 
-def login(session) -> str:
+def login(session) -> tuple:
 	try:
 		creds = netrc.netrc('.netrc').authenticators('mobilevids')
 		logging.debug('Trying netrc file %s', os.path)
@@ -41,7 +41,7 @@ def login(session) -> str:
 	return login_info['auth_token'], login_info['id']
 
 
-def wget_wrapper(video: str, folder):  # wrapper for the wget module
+def dl_wrapper(video: str, folder):  # wrapper for the wget module
 	if not os.path.exists(folder):
 		os.mkdir(folder)
 
@@ -51,9 +51,8 @@ def wget_wrapper(video: str, folder):  # wrapper for the wget module
 	logging.debug(f'Save path {save_path}')
 	logging.info(f'Downloading {filename} to {folder}')
 	
-	if not os.path.isfile(save_path):
-		dl_obj = SmartDL(video, save_path)
-		dl_obj.start()
+	dl_obj = SmartDL(video, save_path, threads=os.cpu_count())
+	dl_obj.start()
 		
 
 
