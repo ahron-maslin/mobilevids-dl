@@ -42,7 +42,7 @@ def login(session) -> tuple:
 
 
 def dl_wrapper(video: str, folder):  # wrapper for the wget module
-	if not os.path.exists(folder):
+	if not os.path.exists(folder): # remove this? smart_DL takes care of it
 		os.mkdir(folder)
 
 	filename = detect_filename(video)
@@ -51,8 +51,8 @@ def dl_wrapper(video: str, folder):  # wrapper for the wget module
 	logging.debug(f'Save path {save_path}')
 	logging.info(f'Downloading {filename} to {folder}')
 	
-	dl_obj = SmartDL(video, save_path, threads=os.cpu_count())
-	dl_obj.start()
+	dl_obj = SmartDL(video, save_path, threads=(os.cpu_count()-1))
+	return dl_obj
 		
 
 

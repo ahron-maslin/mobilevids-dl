@@ -1,8 +1,6 @@
 import os
 import logging
 import html
-import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
 from .imagetoascii import image_to_ascii
@@ -17,6 +15,7 @@ class Downloader:
 		self.ascii = ascii
 		self.info = info
 		self.download_dir = DOWNLOAD_DIRECTORY
+		self.dl_obj = None
 
 
 	def get_quality(self, info: list): 
@@ -52,8 +51,11 @@ class Downloader:
 
 		logging.info("Search results: ")
 		for counter, i in enumerate(response['items']):
-			logging.info(
-				f'{str(counter + 1)}) ID: {str(i["id"])} Name: {html.unescape(i["title"])} {"(Movie)" if i["cat_id"] == 1 else "(TV)"}')
+			logging.info(f'{str(counter + 1)})'
+									 f'ID: {str(i["id"])} '
+									 f'Name: {html.unescape(i["title"])} {"(Movie)" if i["cat_id"] == 1 else "(TV)"}'
+									 )
+
 			if self.ascii:
 				image_to_ascii(i['poster_thumbnail'])
 
@@ -72,12 +74,13 @@ class Downloader:
 		movie_json = get_json(self.session, GET_VIDEO_URL.format(self.user_id, self.auth_token, movie_id))
 		if self.info:
 			logging.info(f"Name: {movie_json['title']}\n"
-										"ID: {movie_json['id']}\n"
-										"Year: {movie_json['year']}\n"
-										"Description: {movie_json['plot']}")
+									 f"ID: {movie_json['id']}\n"
+									 f"Year: {movie_json['year']}\n"
+									 f"Description: {movie_json['plot']}")
 
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
-		dl_wrapper(self.get_quality(movie_json), self.download_dir)
+		self.dl_obj = dl_wrapper(self.get_quality(movie_json), self.download_dir)
+		self.dl_obj.start()
 
 
 	def get_show_by_id(self, show_id: str):
@@ -103,23 +106,30 @@ class Downloader:
 			episode = str(season_json['season_list'][str(season_chosen)][i][1])
 			self.get_single_episode(show_id, season_chosen, episode, self.download_dir)
 
-			# processThread = threading.Thread(target=self.get_single_episode, args=(show_id, season_chosen, episode, self.download_dir))
-			# processThread.start()
 
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
-		dl_wrapper(self.get_quality(episode_info), path)
+		self.dl_obj = dl_wrapper(self.get_quality(episode_info), path)
+		self.dl_obj.start()
 
 
 	def signal_handler(self, sig, frame):  # keyboard interrupt handler
 		logging.debug('SIGINT captured')
+		self.dl_obj.stop()
 		for file in os.listdir(self.download_dir):
-			if file.endswith(".tmp"):
+			if file.endswith(".00", -4, -1):
+				'''
+				  Smart_DL downloads file in chunks ending in ".00x" 
+					where x is a number corresponding to the thread that is being used
+				'''
 				filepath = os.path.join(self.download_dir, file)
 				os.remove(filepath)
-		if len(os.listdir(self.download_dir)):
-			pass
-			# os.rmdir(self.download_dir)
+		if len(os.listdir(self.download_dir)) == 0 and self.download_dir is not DOWNLOAD_DIRECTORY:
+			'''
+			remove download dir if not the default directory
+			'''
+			logging.debug(f'Removing {self.download_dir}')
+			os.rmdir(self.download_dir)
 		logging.error('\n[!] CTRL-C pressed - exiting!')
 		exit(1)
 		
