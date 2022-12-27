@@ -51,7 +51,7 @@ class Downloader:
 
 		logging.info("Search results: ")
 		for counter, i in enumerate(response['items']):
-			logging.info(f'{str(counter + 1)})'
+			logging.info(f'{str(counter + 1)}) '
 									 f'ID: {str(i["id"])} '
 									 f'Name: {html.unescape(i["title"])} {"(Movie)" if i["cat_id"] == 1 else "(TV)"}'
 									 )
@@ -115,7 +115,8 @@ class Downloader:
 
 	def signal_handler(self, sig, frame):  # keyboard interrupt handler
 		logging.debug('SIGINT captured')
-		self.dl_obj.stop()
+		if self.dl_obj:
+			self.dl_obj.stop()
 		for file in os.listdir(self.download_dir):
 			if file.endswith(".00", -4, -1):
 				'''
