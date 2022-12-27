@@ -1,12 +1,12 @@
 from os import path
 
 LEGACY_URL = 'https://mobilevids.org/legacy'
-BASE_URL = 'https://mobilevids.org'
-LOGIN_URL = 'https://mobilevids.org/webapi/user/login.php'
-SEARCH_URL = 'https://mobilevids.org/webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'
-GET_VIDEO_URL = 'https://mobilevids.org/webapi/videos/get_video.php?user_id={}&token={}&id={}'
-GET_SEASON_URL = 'https://mobilevids.org/webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
-GET_SINGLE_EPISODE_URL = 'https://mobilevids.org/webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
+BASE_URL = 'https://mobilevids.org/'
+LOGIN_URL = BASE_URL + 'webapi/user/login.php'
+SEARCH_URL = BASE_URL + 'webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'
+GET_VIDEO_URL = BASE_URL + 'webapi/videos/get_video.php?user_id={}&token={}&id={}'
+GET_SEASON_URL = BASE_URL + 'webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
+GET_SINGLE_EPISODE_URL = BASE_URL + 'webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
 LOGIN_PAYLOAD = 'data=%7B%22Name%22%3A%22{username}%22%2C%22Password%22%3A%22{password}%22%7D'
 DOWNLOAD_DIRECTORY = path.expanduser('~') + '/downloads/'
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
