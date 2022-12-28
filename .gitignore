@@ -5,3 +5,4 @@ __pycache__
 todo
 .netrc
 .vscode
+auth_token.txt
