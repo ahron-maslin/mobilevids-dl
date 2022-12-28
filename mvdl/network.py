@@ -48,12 +48,13 @@ def dl_wrapper(video: str, folder):  # wrapper for the wget module
 	filename = detect_filename(video)
 	save_path = folder + filename
 
-	logging.debug(f'Save path {save_path}')
-	logging.info(f'Downloading {filename} to {folder}')
+	if not os.path.isfile(save_path):
+		logging.debug(f'Save path {save_path}')
+		logging.info(f'Downloading {filename} to {folder}')
+		dl_obj = SmartDL(video, save_path, threads=(os.cpu_count()-1))
+		return dl_obj
 	
-	dl_obj = SmartDL(video, save_path, threads=(os.cpu_count()-1))
-	return dl_obj
-		
+	return None
 
 
 def get_json(session, url: str) -> dict:

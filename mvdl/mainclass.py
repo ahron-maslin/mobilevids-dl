@@ -80,7 +80,8 @@ class Downloader:
 
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
 		self.dl_obj = dl_wrapper(self.get_quality(movie_json), self.download_dir)
-		self.dl_obj.start()
+		if self.dl_obj:
+			self.dl_obj.start()
 
 
 	def get_show_by_id(self, show_id: str):
@@ -110,7 +111,8 @@ class Downloader:
 	def get_single_episode(self, show_id: str, season: str, episode: str, path: str):
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
 		self.dl_obj = dl_wrapper(self.get_quality(episode_info), path)
-		self.dl_obj.start()
+		if self.dl_obj:
+			self.dl_obj.start()
 
 
 	def signal_handler(self, sig, frame):  # keyboard interrupt handler
@@ -125,7 +127,7 @@ class Downloader:
 				'''
 				filepath = os.path.join(self.download_dir, file)
 				os.remove(filepath)
-		if len(os.listdir(self.download_dir)) == 0 and self.download_dir is not DOWNLOAD_DIRECTORY:
+		if self.download_dir and len(os.listdir(self.download_dir)) == 0 and self.download_dir is not DOWNLOAD_DIRECTORY:
 			'''
 			remove download dir if not the default directory
 			'''
