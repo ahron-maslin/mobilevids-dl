@@ -32,6 +32,8 @@ def main():
 	elif args.tv:
 		if args.episode and args.season:
 			downloader.get_single_episode(args.tv, args.season, args.episode, DOWNLOAD_DIRECTORY)
+		elif args.season:
+			downloader.get_show_by_id(args.tv, args.season)
 		else:
 			downloader.get_show_by_id(args.tv)
 	else:

@@ -84,7 +84,7 @@ class Downloader:
 			self.dl_obj.start()
 
 
-	def get_show_by_id(self, show_id: str):
+	def get_show_by_id(self, show_id: str, season_chosen=None):
 		"""
 		Takes a show id and downloads the chosen season to the specified directory
 		"""
@@ -94,12 +94,12 @@ class Downloader:
 		self.download_dir = self.download_dir + season_title.replace(' ', '_') + '/'
 		if self.info:
 			logging.info(f"Name: {season_json['show']['title']}\n"
-										"ID: {season_json['show']['id']}\n"
-										"Year: {season_json['show']['year']}\n"
-										"Description: {season_json['show']['plot']}\n")
-	
-		season_chosen = input(
-			f'[?] Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
+										f"ID: {season_json['show']['id']}\n"
+										f"Year: {season_json['show']['year']}\n"
+										f"Description: {season_json['show']['plot']}\n")
+		if not season_chosen:
+			season_chosen = input(
+				f'[?] Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
 
 		num_episodes = len(season_json['season_list'][str(season_chosen)])
 
