@@ -1,15 +1,11 @@
 import argparse
-import netrc
-import requests
-from wget import download
 import logging
 
-from .mainclass import Downloader
 
 def options_parser(): 
 	# groups for general options and media options
 	parser = argparse.ArgumentParser(
-		description='Mobilevids Downloader script', prog='mobilevidsdl')
+		description='Mobilevids Downloader script', prog='mobilevids_dl')
 
 	parser.add_argument('search', nargs='?')
 	parser.add_argument(
@@ -41,6 +37,21 @@ def options_parser():
 		'--movie', 
 		help='downloads the ID of a movie', 
 		default=False)
+	
+	parser.add_argument(
+		'-n',
+		'--netrc',
+		help='use netrc for reading passwords, uses default'
+        ' location if no path specified',
+		default=False
+	)
+	
+	parser.add_argument(
+		'-p',
+		'--password',
+		help='provide a mobilevids password',
+		default=False
+	)
 
 	parser.add_argument(
 		'-s', 
@@ -53,6 +64,13 @@ def options_parser():
 		'--tv', 
 		help='download a TV show based on it\'s ID', 
 		default=False)
+	
+	parser.add_argument(
+		'-u',
+		'--username',
+		help='provide a Mobilevids username',
+		default=False
+	)
 
 	args = parser.parse_args()
 

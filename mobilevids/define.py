@@ -29,4 +29,5 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
 						'Sec-Fetch-Site': 'same-origin',
 						'sec-ch-ua-platform' : '"Windows"'
 						}
-AUTH_TOKEN_CACHE = 'auth_token.txt'
+AUTH_TOKEN_CACHE = 'auth_token'
+NETRC_FILE_PATH  = './.netrc'
