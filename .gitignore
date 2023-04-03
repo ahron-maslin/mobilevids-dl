@@ -1,6 +1,37 @@
+# authorization token cache files
+.netrc
+auth_token
+
+# dev files
 **/downloads
 **/dumps
-password
 __pycache__
 todo
-.netrc
+.vscode
+
+
+*.py[co]
+*~
+.DS_Store
+_cache/
+.cache/
+.vagrant/
+.coverage
+/cover/
+/htmlcov/
+/build/
+/dist/
+*.egg-info
+.tox
+tags
+tmp
+
+# virtualenv folders
+venv2
+venv3
+.venv
+.idea
+.python-version
+.ipynb_checkpoints
+.ropeproject
+.mypy_cache
