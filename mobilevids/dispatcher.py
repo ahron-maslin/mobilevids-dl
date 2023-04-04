@@ -11,6 +11,8 @@ from .downloader import Downloader
 
 
 def main():
+	args = options_parser()
+
 	logging.debug(f'Version: {__VERSION__}')
 
 	if not os.path.exists(DOWNLOAD_DIRECTORY):
@@ -18,7 +20,6 @@ def main():
 		os.makedirs(DOWNLOAD_DIRECTORY, exist_ok=True)
 
 
-	args = options_parser()
 	session = session_init()
 	auth_token, user_id = get_creds(session, args.username, args.password)
 
