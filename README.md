@@ -78,16 +78,12 @@ instead.
 globally on your machine (i.e., with root/administrator privileges), as the
 installed modules may conflict with other Python applications that you have
 installed in your system (or they can interfere with `mobilevids-dl`).  Prefer
-to use the option `--user` to `pip install`, if you need can.
+to use the option `--user` to `pip install`, if you can.
 
 **Note 2:** As already mentioned, we *strongly* recommend that you use a new
 Python 3 interpreter (e.g., 3.9 or later), since Python 3 has better support
 for SSL/TLS (for secure connections) than earlier versions.<br/>
-If you must use Python 2, be sure that you have at least Python 2.7.9 (later
-versions are OK).<br/>
-Otherwise, you can still use `mobilevids-dl`, but you will have to install the
-extra package `ndg-httpsclient`, which may involve compilation (at least on
-Linux systems).
+
 
 # Running the script
 
@@ -95,7 +91,9 @@ Refer to `mobilevids-dl --help` for a complete, up-to-date reference on the runt
 supported by this utility.
 
 ```bash
-usage: mobilevids_dl [-h] [-a] [-d] [-i] [-e EPISODE] [-m MOVIE] [-s SEASON] [-t TV] [search]
+usage: mobilevids-dl [-h] [-a] [-d] [-i] [-e EPISODE] [-m MOVIE] [-p PASSWORD] [-s SEASON] [-t TV]
+                     [-u USERNAME]
+                     [search]
 
 Mobilevids Downloader script
 
@@ -111,12 +109,16 @@ optional arguments:
                         download a single episode (must be used with -t [TV ID] and -s [SEASON]
   -m MOVIE, --movie MOVIE
                         downloads the ID of a movie
+  -p PASSWORD, --password PASSWORD
+                        provide a mobilevids password
   -s SEASON, --season SEASON
                         specify season to download (must use with -t)
   -t TV, --tv TV        download a TV show based on it's ID
+  -u USERNAME, --username USERNAME
+                        provide a mobilevids username
 ```
 
-Run the script to download the media by providing your Mobilevids account
+Run the script to download the media by providing your mobilevids account
 credentials (e.g. email address and password or a `~/.netrc` file), the
 movie name, as well as any additional parameters:
 
@@ -129,8 +131,8 @@ are using Windows) with contents like:
     machine mobilevids-dl login <user> password <pass>
 ```
 Create the file if it doesn't exist yet.  From then on, you can switch from
-using `-u` and `-p` to simply call `mobilevids-dl` with the option `-n`
-instead.  This is especially convenient, as typing usernames (email
+using `-u` and `-p` to simply call `mobilevids-dl`.
+This is especially convenient, as typing usernames (email
 addresses) and passwords directly on the command line can get tiresome (even
 more if you happened to choose a "strong" password).
 
@@ -152,7 +154,7 @@ possible*.
 
 # Filing an issue/Reporting a bug
 
-When reporting bugs against `mobilevids_dl`, please don't forget to include
+When reporting bugs against `mobilevids-dl`, please don't forget to include
 enough information so that you can help us help you:
 
 * Is the problem happening with the latest version of the script?
@@ -165,7 +167,7 @@ enough information so that you can help us help you:
 
 # Contact
 
-Please, post bugs and issues on [github][11]. Please, **DON'T** send support
+Please, post bugs and issues on [github][7]. Please, **DON'T** send support
 requests privately to the maintainers! We are quite swamped with day-to-day
 activities. If you have problems, **PLEASE**, file them on the issue tracker.
 

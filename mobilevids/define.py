@@ -1,4 +1,15 @@
-from os import path
+import os
+
+from mobilevids import __PKGNAME__
+
+def normalize_path(path):
+		home_dir = os.path.expanduser('~')
+		if os.name == 'nt':
+			package_dir = os.path.join(home_dir, "AppData", "Local", __PKGNAME__)
+		else:
+			package_dir = home_dir
+    
+		return os.path.join(package_dir, path)
 
 LEGACY_URL = 'https://mobilevids.org/legacy'
 BASE_URL = 'https://mobilevids.org/'
@@ -8,7 +19,7 @@ GET_VIDEO_URL = BASE_URL + 'webapi/videos/get_video.php?user_id={}&token={}&id={
 GET_SEASON_URL = BASE_URL + 'webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
 GET_SINGLE_EPISODE_URL = BASE_URL + 'webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
 LOGIN_PAYLOAD = 'data=%7B%22Name%22%3A%22{username}%22%2C%22Password%22%3A%22{password}%22%7D'
-DOWNLOAD_DIRECTORY = path.expanduser('~') + '/downloads/'
+DOWNLOAD_DIRECTORY = normalize_path('downloads/')
 QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
 HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
 						'Host': 'mobilevids.org',
@@ -29,5 +40,5 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
 						'Sec-Fetch-Site': 'same-origin',
 						'sec-ch-ua-platform' : '"Windows"'
 						}
-AUTH_TOKEN_CACHE = 'auth_token'
-NETRC_FILE_PATH  = './.netrc'
+AUTH_TOKEN_CACHE = normalize_path('.mvdl_auth_token')
+NETRC_FILE_PATH  = normalize_path('.netrc')

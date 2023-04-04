@@ -15,7 +15,7 @@ def main():
 
 	if not os.path.exists(DOWNLOAD_DIRECTORY):
 		logging.debug(f'Creating Directory {DOWNLOAD_DIRECTORY}')
-		os.mkdir(DOWNLOAD_DIRECTORY)
+		os.makedirs(DOWNLOAD_DIRECTORY, exist_ok=True)
 
 
 	args = options_parser()
