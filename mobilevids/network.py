@@ -5,7 +5,7 @@ from json import JSONDecodeError
 from wget import detect_filename
 import os
 import logging
-from pySmartDL import SmartDL
+from pypdl import Downloader
 
 from .define import LOGIN_PAYLOAD, LOGIN_URL, HEADERS, AUTH_TOKEN_CACHE, GET_VIDEO_URL, NETRC_FILE_PATH
 
@@ -125,7 +125,8 @@ def dl_wrapper(video: str, folder):
 	if not os.path.isfile(save_path):
 		logging.debug(f'Save path {save_path}')
 		logging.info(f'Downloading {filename} to {folder}')
-		dl_obj = SmartDL(video, save_path, threads=(os.cpu_count()-2))
+		dl_obj = Downloader()
+		dl_obj.start(video, save_path, num_connections=(os.cpu_count()-2))
 		return dl_obj
 	
 	return None
