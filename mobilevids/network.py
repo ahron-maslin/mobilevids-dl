@@ -5,7 +5,7 @@ from json import JSONDecodeError
 from wget import detect_filename
 import os
 import logging
-from pypdl import Downloader
+from pypdl import Downloader as mtdl
 
 from .define import LOGIN_PAYLOAD, LOGIN_URL, HEADERS, AUTH_TOKEN_CACHE, GET_VIDEO_URL, NETRC_FILE_PATH
 
@@ -107,16 +107,16 @@ def get_creds(session, username=None, password=None) -> tuple:
 
 def dl_wrapper(video: str, folder):  
 	"""
-	Wrapper function for the SmartDL module.
+	Wrapper function for the pypdl module.
 
 	Args:
 		video: The URL of the video to download.
 		folder: The path to the folder in which to save the downloaded video.
 
 	Returns:
-		A SmartDL object that can be used to download the video.
+		A pypdl object that can be used to download the video.
 	"""
-	if not os.path.exists(folder): # remove this? smart_DL takes care of it
+	if not os.path.exists(folder): # remove this? pypdl takes care of it
 		os.mkdir(folder)
 
 	filename = detect_filename(video)
@@ -125,8 +125,8 @@ def dl_wrapper(video: str, folder):
 	if not os.path.isfile(save_path):
 		logging.debug(f'Save path {save_path}')
 		logging.info(f'Downloading {filename} to {folder}')
-		dl_obj = Downloader()
-		dl_obj.start(video, save_path, num_connections=(os.cpu_count()-2))
+		dl_obj = mtdl()
+		dl_obj.start(url=video, filepath=save_path, num_connections=(os.cpu_count()-2), retries=3)
 		return dl_obj
 	
 	return None
