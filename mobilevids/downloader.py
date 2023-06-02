@@ -125,8 +125,6 @@ class Downloader:
 
 		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
 		self.dl_obj = dl_wrapper(self.get_quality(movie_json), self.download_dir)
-		if self.dl_obj:
-			self.dl_obj.start()
 
 
 	def get_show_by_id(self, show_id: str, season_chosen=None):
@@ -170,8 +168,6 @@ class Downloader:
     """
 		episode_info = get_json(self.session, GET_SINGLE_EPISODE_URL.format(self.user_id, self.auth_token, show_id, season, episode))
 		self.dl_obj = dl_wrapper(self.get_quality(episode_info), path)
-		if self.dl_obj:
-			self.dl_obj.start()
 
 
 	def signal_handler(self, sig, frame):
@@ -185,10 +181,11 @@ class Downloader:
 		logging.debug('SIGINT captured')
 		if self.dl_obj:
 			self.dl_obj.stop()
+		"""
 		for file in os.listdir(self.download_dir):
-			if file.endswith(".00", -4, -1):
+			if file.endswith(".part", -4, -1):
 				'''
-				  Smart_DL downloads file in chunks ending in ".00x" 
+				  pypdl downloads file in chunks ending in ".part" 
 					where x is a number corresponding to the thread that is being used
 				'''
 				filepath = os.path.join(self.download_dir, file)
@@ -199,6 +196,7 @@ class Downloader:
 			'''
 			logging.debug(f'Removing {self.download_dir}')
 			os.rmdir(self.download_dir)
+		"""
 		logging.error('\n[!] CTRL-C pressed - exiting!')
 		exit(1)
 		
