@@ -9,5 +9,5 @@ pypdl==0.0.6
 reprint==0.6.0
 requests==2.31.0
 six==1.16.0
-urllib3==1.26.15
+urllib3==1.26.18
 wget==3.2
