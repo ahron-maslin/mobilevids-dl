@@ -7,7 +7,7 @@ import os
 import logging
 from pypdl import Downloader as mtdl
 
-from .define import LOGIN_PAYLOAD, LOGIN_URL, HEADERS, AUTH_TOKEN_CACHE, GET_VIDEO_URL, NETRC_FILE_PATH
+from .define import LOGIN_PAYLOAD, LOGIN_URL, HEADERS, AUTH_TOKEN_CACHE, GET_VIDEO_URL, NETRC_FILE_PATH, NOTIFY_INFO
 
 
 def check_auth_cache(cached_auth_file):
@@ -70,7 +70,7 @@ def get_creds(session, username=None, password=None) -> tuple:
 		creds = get_json(session, url)
 
 		if creds['status'] != "-1":
-			logging.info("[*] Using cached credentials")
+			logging.info(f"{NOTIFY_INFO} Using cached credentials")
 			return cached_creds['auth_token'], cached_creds['id']
 
 	if username and password:
@@ -101,7 +101,7 @@ def get_creds(session, username=None, password=None) -> tuple:
 		raise JSONDecodeError('cannot decode JSON - bad response!')
 	save_cached_creds(login_info)
 	logging.debug(login_info)
-	logging.info('[*] Successfully logged in!')
+	logging.info(f'{NOTIFY_INFO} Successfully logged in!')
 	return login_info['auth_token'], login_info['id']
 
 

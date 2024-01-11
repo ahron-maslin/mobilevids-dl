@@ -42,3 +42,9 @@ HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
 						}
 AUTH_TOKEN_CACHE = normalize_path('.mvdl_auth_token')
 NETRC_FILE_PATH  = normalize_path('.netrc')
+
+
+NOTIFY_ALERT = '⚠️',
+NOTIFY_INFO = '&#8505;'
+NOTIFY_QUESTION = '❓'
+NOTIFY_SUCCESS = '✅'

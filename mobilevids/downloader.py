@@ -2,7 +2,7 @@ import os
 import logging
 import html
 
-from .define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL
+from .define import DOWNLOAD_DIRECTORY, QUALITIES, SEARCH_URL, GET_VIDEO_URL, GET_SEASON_URL, GET_SINGLE_EPISODE_URL, NOTIFY_QUESTION, NOTIFY_ALERT, NOTIFY_INFO, NOTIFY_SUCCESS
 from .imagetoascii import image_to_ascii
 from .network import get_json, dl_wrapper
 
@@ -78,15 +78,15 @@ class Downloader:
         search_query (str): The search query to use. If not provided, the user will be prompted to enter one.
     """
 		if not search_query:
-			search_query = input('[?] Search for something: ').lower()
+			search_query = input(f'{NOTIFY_QUESTION} Search for something: ').lower()
 		response = get_json(self.session, SEARCH_URL.format(self.user_id, self.auth_token, search_query))
 
 		if response['items'] == None:
-				logging.error(f'[!] No results found for "{search_query}" - exiting!')
+				logging.error(f'{NOTIFY_ALERT} No results found for "{search_query}" - exiting!')
 				exit()
 
 		if len(response['items']) == 1:
-			logging.info("[!] Only one result found - downloading it!")
+			logging.info(f"{NOTIFY_ALERT} Only one result found - downloading it!")
 			first_id = response['items'][0]
 			self.get_movie_by_id(first_id['id']) if first_id['cat_id'] == 1 else self.get_show_by_id(first_id['id'])
 			exit()
@@ -123,7 +123,7 @@ class Downloader:
 									 f"Year: {movie_json['year']}\n"
 									 f"Description: {movie_json['plot']}")
 
-		logging.info(f'[*] Downloading {movie_json["title"]} ({movie_json["year"]})')
+		logging.info(f'{NOTIFY_INFO} Downloading {movie_json["title"]} ({movie_json["year"]})')
 		self.dl_obj = dl_wrapper(self.get_quality(movie_json), self.download_dir)
 
 
@@ -138,7 +138,7 @@ class Downloader:
 		season_json = get_json(self.session, GET_SEASON_URL.format(self.user_id, self.auth_token, show_id))
 		season_title = season_json["show"]["title"]
 		season_id = season_json['show']['id']
-		logging.info(f'[*] Showing info for {season_title} (id: {season_id})')
+		logging.info(f'{NOTIFY_INFO} Showing info for {season_title} (id: {season_id})')
 		self.download_dir = self.download_dir + season_title.replace(' ', '_') + '/'
 		if self.info:
 			logging.info(f"Name: {season_json['show']['title']}\n"
@@ -147,7 +147,7 @@ class Downloader:
 										f"Description: {season_json['show']['plot']}\n")
 		if not season_chosen:
 			season_chosen = input(
-				f'[?] Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
+				f'{NOTIFY_QUESTION} Which season (out of {list(season_json["season_list"].keys())[0]}) would you like to download? ')
 
 		num_episodes = len(season_json['season_list'][str(season_chosen)])
 
@@ -197,6 +197,6 @@ class Downloader:
 			logging.debug(f'Removing {self.download_dir}')
 			os.rmdir(self.download_dir)
 		"""
-		logging.error('\n[!] CTRL-C pressed - exiting!')
+		logging.error(f'\n{NOTIFY_ALERT} CTRL-C pressed - exiting!')
 		exit(1)
 		
