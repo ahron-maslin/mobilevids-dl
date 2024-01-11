@@ -45,6 +45,6 @@ NETRC_FILE_PATH  = normalize_path('.netrc')
 
 
 NOTIFY_ALERT = '⚠️',
-NOTIFY_INFO = 'ℹ️'
+NOTIFY_INFO = '🛈'
 NOTIFY_QUESTION = '❓'
 NOTIFY_SUCCESS = '✅'
