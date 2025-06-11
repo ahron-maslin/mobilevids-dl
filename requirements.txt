@@ -7,7 +7,7 @@ idna==3.4
 Pillow==10.0.1
 pypdl==0.0.6
 reprint==0.6.0
-requests==2.31.0
+requests==2.32.4
 six==1.16.0
 urllib3==1.26.17
 wget==3.2
