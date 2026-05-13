@@ -44,7 +44,7 @@ AUTH_TOKEN_CACHE = normalize_path('.mvdl_auth_token')
 NETRC_FILE_PATH  = normalize_path('.netrc')
 
 
-NOTIFY_ALERT = '⚠️',
+NOTIFY_ALERT = '⚠️'
 NOTIFY_INFO = '🛈'
 NOTIFY_QUESTION = '❓'
 NOTIFY_SUCCESS = '✅'
