@@ -1,14 +1,45 @@
-import subprocess
+"""End-to-end CLI checks, driven in-process through mobilevids.dispatcher.main.
+
+The previous version shelled out to the installed ``mobilevids-dl`` console
+script, which meant these tests only worked after a real `pip install`, and its
+version check asserted `returncode != 127` -- true even when the program
+crashed on startup, which is a tautology rather than a test.
+"""
+
+from __future__ import annotations
+
 import pytest
 
-def test_help():
-    result = subprocess.run(['mobilevids-dl', '--help'], capture_output=True, text=True)
-    assert result.returncode == 0
-    assert 'Mobilevids Downloader script' in result.stdout
+from mobilevids import __VERSION__
+from mobilevids.dispatcher import main
+from mobilevids.options import build_parser
 
-def test_version():
-    # Since version is not a flag but displayed in debug, we can check if it runs without error
-    result = subprocess.run(['mobilevids-dl', '--debug'], capture_output=True, text=True, input='\n')
-    # It might fail because of lack of credentials if we don't mock it, 
-    # but let's see if it at least starts.
-    assert 'Version' in result.stdout or 'Version' in result.stderr or result.returncode != 127
+
+class TestHelp:
+    def test_help_exits_zero_and_describes_the_program(self, capsys):
+        with pytest.raises(SystemExit) as excinfo:
+            build_parser().parse_args(["--help"])
+        assert excinfo.value.code == 0
+        assert "Mobilevids Downloader script" in capsys.readouterr().out
+
+
+class TestVersion:
+    def test_version_flag_prints_current_version(self, capsys):
+        with pytest.raises(SystemExit) as excinfo:
+            build_parser().parse_args(["--version"])
+        assert excinfo.value.code == 0
+        assert __VERSION__ in capsys.readouterr().out
+
+
+class TestMainMissingCredentials:
+    def test_no_credentials_available_fails_cleanly(
+        self, tmp_path, monkeypatch, capsys, cache_path
+    ):
+        monkeypatch.setattr("mobilevids.network.AUTH_TOKEN_CACHE", cache_path)
+        monkeypatch.delenv("MOBILEVIDS_USERNAME", raising=False)
+        monkeypatch.delenv("MOBILEVIDS_PASSWORD", raising=False)
+
+        exit_code = main(["-n", str(tmp_path / "no-such-netrc"), "-o", str(tmp_path), "x"])
+
+        assert exit_code == 1
+        assert "Traceback" not in capsys.readouterr().err

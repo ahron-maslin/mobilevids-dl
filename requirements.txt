@@ -1,13 +1,10 @@
-ascii-magic==2.3.0
-backports.shutil-get-terminal-size==1.0.0
-certifi==2023.7.22
-charset-normalizer==3.1.0
-colorama==0.4.6
-idna==3.4
-Pillow==10.0.1
-pypdl==0.0.6
-reprint==0.6.0
-requests==2.31.0
-six==1.16.0
-urllib3==2.7.0
-wget==3.2
+# Pinned, reproducible runtime environment for the application.
+#
+# Library-style floors live in pyproject.toml; this file exists so a checkout can
+# be installed deterministically. Only direct dependencies are listed - pinning
+# transitive packages (certifi, charset-normalizer, idna, urllib3, six) is what
+# generated the backlog of dependency alerts for packages this project does not
+# import. Let the resolver pick those, and let pip-audit flag them.
+ascii-magic==2.7.5
+Pillow==12.3.0
+requests==2.34.2

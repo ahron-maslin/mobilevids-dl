@@ -41,10 +41,7 @@ This work was originally inspired in part by [coursera-dl][3].
 
 # Installation instructions
 
-`mobilevids-dl` requires Python 3 and a free Mobilevids account.
-
-**Note:** We *strongly* recommend that you use a Python 3 interpreter (3.9
-or later).
+`mobilevids-dl` requires Python 3.10+ and a free Mobilevids account.
 
 On any operating system, ensure that the Python executable location is added
 to your `PATH` environment variable and, once you have the dependencies
@@ -66,23 +63,11 @@ This will download [the latest released version][7] of the program from the
 [Python Package Index (PyPI)][6] along with *all* the necessary
 dependencies. At this point, you should be ready to start using it.
 
-If this does not work, because your Python 2 version is too old (e.g. 2.7.5
-on Ubuntu 14.4), try:
-
-    apt-get install python3 python3-pip
-    pip3 install mobilevids-dl
-
-instead.
-
-**Note 1:** We strongly recommend that you *don't* install the package
+**Note:** We strongly recommend that you *don't* install the package
 globally on your machine (i.e., with root/administrator privileges), as the
 installed modules may conflict with other Python applications that you have
-installed in your system (or they can interfere with `mobilevids-dl`).  Prefer
-to use the option `--user` to `pip install`, if you can.
-
-**Note 2:** As already mentioned, we *strongly* recommend that you use a new
-Python 3 interpreter (e.g., 3.9 or later), since Python 3 has better support
-for SSL/TLS (for secure connections) than earlier versions.<br/>
+installed in your system (or they can interfere with `mobilevids-dl`). Prefer
+to install it into a virtual environment, or use `pip install --user`.
 
 
 # Running the script
@@ -91,50 +76,63 @@ Refer to `mobilevids-dl --help` for a complete, up-to-date reference on the runt
 supported by this utility.
 
 ```bash
-usage: mobilevids-dl [-h] [-a] [-d] [-i] [-e EPISODE] [-m MOVIE] [-p PASSWORD] [-s SEASON] [-t TV]
-                     [-u USERNAME]
+usage: mobilevids-dl [-h] [--version] [-a] [-d] [-i] [-e EPISODE] [-m MOVIE]
+                     [-n [PATH]] [-o DIR] [-p PASSWORD] [--segments SEGMENTS]
+                     [-s SEASON] [-t TV] [-u USERNAME]
                      [search]
 
 Mobilevids Downloader script
 
 positional arguments:
-  search
+  search                title to search for
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
   -a, --ascii           show ascii art
-  -d, --debug           debugs the program - duh
+  -d, --debug           enable debug logging
   -i, --info            show info about movie/show
   -e EPISODE, --episode EPISODE
-                        download a single episode (must be used with -t [TV ID] and -s [SEASON]
+                        download a single episode (requires -t [TV ID] and -s
+                        [SEASON])
   -m MOVIE, --movie MOVIE
-                        downloads the ID of a movie
+                        ID of a movie to download
+  -n [PATH], --netrc [PATH]
+                        read credentials from a netrc file, using the default
+                        location if PATH is omitted
+  -o DIR, --output DIR  directory to save downloads in (default: ~/downloads)
   -p PASSWORD, --password PASSWORD
-                        provide a mobilevids password
+                        Mobilevids password
+  --segments SEGMENTS   parallel connections per download (default: 4)
   -s SEASON, --season SEASON
-                        specify season to download (must use with -t)
-  -t TV, --tv TV        download a TV show based on it's ID
+                        season to download (requires -t)
+  -t TV, --tv TV        ID of a TV show to download
   -u USERNAME, --username USERNAME
-                        provide a mobilevids username
+                        Mobilevids username
 ```
 
-Run the script to download the media by providing your mobilevids account
-credentials (e.g. email address and password or a `~/.netrc` file), the
-movie name, as well as any additional parameters:
+Credentials are resolved in this order:
 
-On \*nix platforms, the use of a `~/.netrc` file is a good alternative to
-specifying both your username (i.e., your email address) and password every
-time on the command line. To use it, simply add a line like the one below to
-a file named `.netrc` in your home directory (or the [equivalent][5], if you
-are using Windows) with contents like:
+1. the `--username`/`--password` command-line flags
+2. the `MOBILEVIDS_USERNAME` and `MOBILEVIDS_PASSWORD` environment variables
+3. a `.netrc` file
+
+The environment variables are the recommended option: command-line arguments
+are visible to other users on the same machine (via the process list) and get
+saved in your shell history.
+
+On \*nix platforms, a `~/.netrc` file is a good alternative to typing your
+username and password every time. To use it, add an entry like the one below
+to a file named `.netrc` in your home directory (or the [equivalent][5], if
+you are using Windows):
 ```
-    machine mobilevids-dl login <user> password <pass>
+machine mobilevids
+    login <user>
+    password <pass>
 ```
-Create the file if it doesn't exist yet.  From then on, you can switch from
-using `-u` and `-p` to simply call `mobilevids-dl`.
-This is especially convenient, as typing usernames (email
-addresses) and passwords directly on the command line can get tiresome (even
-more if you happened to choose a "strong" password).
+Create the file if it doesn't exist yet, and make sure only you can read it
+(`chmod 600 ~/.netrc`). From then on, you can switch from `-u`/`-p` to simply
+calling `mobilevids-dl`.
 
 # Reporting issues
 
@@ -161,9 +159,10 @@ enough information so that you can help us help you:
 * What operating system are you using?
 * Do you have all the recommended versions of the modules? See them in the
   file `requirements.txt`.
-* What are the precise messages that you get? Please, use the `--debug`
-  option before posting the messages as a bug report. Please, copy and paste
-  them.  Don't reword/paraphrase the messages.
+* What are the precise messages that you get? Please run with `--debug` and
+  copy and paste the output rather than paraphrasing it. Your password is
+  never printed, but review the output before posting in case it contains
+  anything else you'd rather not share (e.g. video titles or IDs).
 
 # Contact
 

@@ -1,50 +1,84 @@
+"""Static configuration: API endpoints, filesystem paths and console glyphs."""
+
+from __future__ import annotations
+
 import os
+from enum import Enum
+from pathlib import Path
 
 from mobilevids import __PKGNAME__
 
-def normalize_path(path):
-		home_dir = os.path.expanduser('~')
-		if os.name == 'nt':
-			package_dir = os.path.join(home_dir, "AppData", "Local", __PKGNAME__)
-		else:
-			package_dir = home_dir
-    
-		return os.path.join(package_dir, path)
 
-LEGACY_URL = 'https://mobilevids.org/legacy'
-BASE_URL = 'https://mobilevids.org/'
-LOGIN_URL = BASE_URL + 'webapi/user/login.php'
-SEARCH_URL = BASE_URL + 'webapi/videos/search.php?&p=1&user_id={}&token={}&query={}'
-GET_VIDEO_URL = BASE_URL + 'webapi/videos/get_video.php?user_id={}&token={}&id={}'
-GET_SEASON_URL = BASE_URL + 'webapi/videos/get_season.php?user_id={}&token={}&show_id={}'
-GET_SINGLE_EPISODE_URL = BASE_URL + 'webapi/videos/get_single_episode.php?user_id={}&token={}&show_id={}&season={}&episode={}'
-LOGIN_PAYLOAD = 'data=%7B%22Name%22%3A%22{username}%22%2C%22Password%22%3A%22{password}%22%7D'
-DOWNLOAD_DIRECTORY = normalize_path('downloads/')
-QUALITIES = ['src_vip_hd_1080p', 'src_vip_hd', 'src_vip_sd', 'src_free_sd']
-HEADERS = {'POST': '/webapi/user/login.php HTTP/1.1',
-						'Host': 'mobilevids.org',
-						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
-						'Accept': '*/*',
-						'Accept-Language': 'en-US,en;q=0.5',
-						'Accept-Encoding': 'gzip, deflate, br',
-						'sec-ch-ua' : '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
-						'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-						'Cookie': 'menuNodes=[{"name":"Movies","icon":"mdi-movie","children":[{"name":"Browse","path":"/movies","icon":"mdi-view-list"},{"name":"Popular","path":"/top_movies","icon":"mdi-movie-filter"}]},{"name":"TV Shows","icon":"mdi-remote-tv","children":[{"name":"Browse ","path":"/tvshows","icon":"mdi-view-list"},{"name":"Popular ","path":"/top_shows","icon":"mdi-monitor-star"},{"name":"Calendar","path":"/show_calendar","icon":"mdi-calendar"}]}]',
-						'X-Requested-With': 'XMLHttpRequest',
-						'Content-Length': '77',
-						'Origin': 'https://mobilevids.org',
-						'Connection': 'keep-alive',
-						'Referer': 'https://mobilevids.org/legacy/',
-						'Sec-Fetch-Dest': 'empty',
-						'Sec-Fetch-Mode': 'cors',
-						'Sec-Fetch-Site': 'same-origin',
-						'sec-ch-ua-platform' : '"Windows"'
-						}
-AUTH_TOKEN_CACHE = normalize_path('.mvdl_auth_token')
-NETRC_FILE_PATH  = normalize_path('.netrc')
+def _user_data_dir() -> Path:
+    """Return the per-user directory that holds downloads and cached credentials."""
+    if os.name == "nt":
+        local_app_data = os.environ.get("LOCALAPPDATA")
+        base = Path(local_app_data) if local_app_data else Path.home() / "AppData" / "Local"
+        return base / __PKGNAME__
+    return Path.home()
 
 
-NOTIFY_ALERT = '⚠️'
-NOTIFY_INFO = '🛈'
-NOTIFY_QUESTION = '❓'
-NOTIFY_SUCCESS = '✅'
+def normalize_path(path: str | Path) -> Path:
+    """Resolve ``path`` against the per-user data directory."""
+    return _user_data_dir() / path
+
+
+BASE_URL = "https://mobilevids.org/"
+LOGIN_URL = BASE_URL + "webapi/user/login.php"
+SEARCH_URL = BASE_URL + "webapi/videos/search.php"
+GET_VIDEO_URL = BASE_URL + "webapi/videos/get_video.php"
+GET_SEASON_URL = BASE_URL + "webapi/videos/get_season.php"
+GET_SINGLE_EPISODE_URL = BASE_URL + "webapi/videos/get_single_episode.php"
+
+DOWNLOAD_DIRECTORY = normalize_path("downloads")
+AUTH_TOKEN_CACHE = normalize_path(".mvdl_auth_token")
+NETRC_FILE_PATH = normalize_path(".netrc")
+
+#: Machine name to look up in the netrc file. Must match the documented value.
+NETRC_MACHINE = "mobilevids"
+
+#: Environment variables consulted before falling back to the netrc file.
+ENV_USERNAME = "MOBILEVIDS_USERNAME"
+# A variable name, not a secret.
+ENV_PASSWORD = "MOBILEVIDS_PASSWORD"  # noqa: S105  # nosec B105
+
+#: (connect, read) timeout in seconds applied to every API request.
+REQUEST_TIMEOUT = (10, 30)
+
+#: Number of parallel connections used for a single video download.
+DEFAULT_SEGMENTS = 4
+
+#: Bytes read per socket recv while streaming a download.
+CHUNK_SIZE = 1 << 20
+
+
+class Quality(str, Enum):
+    """Video source fields, ordered best quality first."""
+
+    HD_1080P = "src_vip_hd_1080p"
+    HD = "src_vip_hd"
+    SD = "src_vip_sd"
+    FREE_SD = "src_free_sd"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+#: Preference order used when picking a video source.
+QUALITIES: tuple[Quality, ...] = tuple(Quality)
+
+#: Minimal headers the API requires; requests derives Host and Content-Length.
+HEADERS = {
+    "User-Agent": f"{__PKGNAME__}/python-requests",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "X-Requested-With": "XMLHttpRequest",
+    "Origin": "https://mobilevids.org",
+    "Referer": "https://mobilevids.org/legacy/",
+}
+
+NOTIFY_ALERT = "⚠️"
+NOTIFY_INFO = "🛈"
+NOTIFY_QUESTION = "❓"
+NOTIFY_SUCCESS = "✅"

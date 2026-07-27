@@ -1,17 +1,9 @@
 include requirements*.txt
-include CONTRIBUTING.md
-include LICENSE
+include AUTHORS.md
+include README.md
 
-exclude .gitignore
-exclude .travis.yml
-exclude AUTHORS.md
-exclude README.md
-exclude mobilevids-dl
-exclude deploy/.netrc
-exclude deploy/README.md
-exclude deploy/build.sh
-exclude deploy/download.sh
+exclude .editorconfig
 
-prune deploy/
-prune tests/
-prune .github/
+prune .github
+prune dumps
+prune tests

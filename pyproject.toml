@@ -1,0 +1,127 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mobilevids-dl"
+dynamic = ["version"]
+description = "Command line downloader for movies and TV shows from mobilevids.org"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "LGPL-3.0-or-later"
+license-files = ["LICENSE"]
+maintainers = [{ name = "Aharon Maslin", email = "aronmaslin@gmail.com" }]
+keywords = ["mobilevids", "mobilevids-dl", "download", "entertainment", "video"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Multimedia :: Video",
+    "Typing :: Typed",
+]
+dependencies = [
+    # 2.32.4 fixes CVE-2024-47081 (.netrc credential leak via malicious URLs).
+    "requests>=2.32.4",
+    "ascii-magic>=2.3.0",
+    # Only reached through ascii-magic, but floored explicitly: every Pillow
+    # release below 12.3.0 carries at least one unpatched advisory.
+    "Pillow>=12.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "bandit>=1.8",
+    "build>=1.2",
+    "mypy>=1.14",
+    "pip-audit>=2.7",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "requests-mock>=1.12",
+    "ruff>=0.9",
+    "twine>=6.0",
+    "types-requests>=2.32",
+]
+
+[project.scripts]
+mobilevids-dl = "mobilevids.dispatcher:main"
+
+[project.urls]
+Homepage = "https://github.com/ahron-maslin/mobilevids-dl"
+Repository = "https://github.com/ahron-maslin/mobilevids-dl"
+Issues = "https://github.com/ahron-maslin/mobilevids-dl/issues"
+
+[tool.setuptools]
+packages = ["mobilevids"]
+
+[tool.setuptools.dynamic]
+version = { attr = "mobilevids.__VERSION__" }
+
+[tool.setuptools.package-data]
+mobilevids = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
+    "PTH",  # flake8-use-pathlib
+    "A",    # flake8-builtins
+    "S",    # flake8-bandit
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "S101", # assert is fine, and pytest requires it
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106"] # hardcoded dummy credentials in fixtures
+
+[tool.mypy]
+python_version = "3.10"
+files = ["mobilevids", "tests"]
+strict = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "ascii_magic.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Strict mode's no-untyped-def is needless ceremony on pytest test functions;
+# the library code they exercise is still fully checked.
+module = "tests.*"
+disallow_untyped_decorators = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+source = ["mobilevids"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "build", "dist"]

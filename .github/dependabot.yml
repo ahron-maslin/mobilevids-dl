@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    groups:
+      # One PR for the tooling churn, so security bumps stay easy to review.
+      dev-dependencies:
+        patterns:
+          - bandit
+          - build
+          - mypy
+          - pip-audit
+          - pytest*
+          - requests-mock
+          - ruff
+          - twine
+          - types-*
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - ci
