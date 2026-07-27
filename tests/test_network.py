@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import stat
+import sys
 from urllib.parse import unquote_plus
 
 import pytest
@@ -63,6 +64,7 @@ class TestCredentialCache:
         save_cached_creds({"auth_token": "tok", "id": "1"}, cache_path)
         assert load_cached_creds(cache_path) == Credentials("tok", "1")
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="POSIX mode bits don't apply on Windows")
     def test_written_file_is_owner_only(self, cache_path):
         # Regression: the token cache used to be written with the default
         # umask (typically 0644), leaving a bearer token world-readable.
@@ -70,6 +72,7 @@ class TestCredentialCache:
         mode = stat.S_IMODE(cache_path.stat().st_mode)
         assert mode == 0o600
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="POSIX mode bits don't apply on Windows")
     def test_tightens_permissions_of_preexisting_file(self, cache_path):
         cache_path.write_text("{}")
         cache_path.chmod(0o644)
