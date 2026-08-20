@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from mobilevids import __PKGNAME__
@@ -52,16 +52,13 @@ DEFAULT_SEGMENTS = 4
 CHUNK_SIZE = 1 << 20
 
 
-class Quality(str, Enum):
+class Quality(StrEnum):
     """Video source fields, ordered best quality first."""
 
     HD_1080P = "src_vip_hd_1080p"
     HD = "src_vip_hd"
     SD = "src_vip_sd"
     FREE_SD = "src_free_sd"
-
-    def __str__(self) -> str:
-        return self.value
 
 
 #: Preference order used when picking a video source.
