@@ -41,7 +41,7 @@ This work was originally inspired in part by [coursera-dl][3].
 
 # Installation instructions
 
-`mobilevids-dl` requires Python 3.10+ and a free Mobilevids account.
+`mobilevids-dl` requires Python 3.12+ and a free Mobilevids account.
 
 On any operating system, ensure that the Python executable location is added
 to your `PATH` environment variable and, once you have the dependencies
