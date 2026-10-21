@@ -6,5 +6,5 @@
 # generated the backlog of dependency alerts for packages this project does not
 # import. Let the resolver pick those, and let pip-audit flag them.
 ascii-magic==2.7.5
-Pillow==12.3.0
+Pillow==13.0.0
 requests==2.34.2
